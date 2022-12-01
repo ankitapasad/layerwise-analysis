@@ -31,7 +31,7 @@ class LibrispeechAlign:
                 os.path.join(data_dir, f"alignment_{key}_{dataset_split}.json"), value
             )
 
-        if dataset_split == "train":
+        if "train" in dataset_split:
             count_fn, token_lst_fn = {}, {}
             for key in ["phone", "word"]:
                 count_fn[key] = os.path.join(data_dir, f"{key}_count.json")
@@ -45,7 +45,7 @@ class LibrispeechAlign:
         wrd_lst, phn_lst = [], []
         parent_dir = os.path.join(self.data_dir, self.dataset_split)
         all_fns = glob.glob(os.path.join(parent_dir, "*/*/*.TextGrid"))
-        for fname in all_fns:
+        for fname in tqdm(all_fns):
             self.get_info(fname, phn_lst, wrd_lst)
         token_lst_dct = {"phone": phn_lst, "word": wrd_lst}
 
@@ -138,13 +138,11 @@ def combine_alignments(data_dir, data_split, token_type):
         alignment_dct = load_dct(
             os.path.join(data_dir, f"alignment_{token_type}_{sub_data_split}.json")
         )
-        for token, alignment_lst in alignment_dct.items():
+        for token in tqdm(alignment_dct):
+            alignment_lst = alignment_dct[token]
             _ = combined_dct.setdefault(token, [])
-            assert len(set(alignment_lst) - set(combined_dct[token])) == len(
-                alignment_lst
-            )
             combined_dct[token].extend(alignment_lst)
-
+    
     save_dct(
         os.path.join(data_dir, f"alignment_{token_type}_{data_split}.json"),
         combined_dct,

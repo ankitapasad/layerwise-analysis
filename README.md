@@ -52,7 +52,7 @@ Follow the next two steps to prepare data files.
 ```
 . scripts/prepare_alignment_files.sh librispeech $path_to_librispeech_data $alignment_data_dir
 ```
-This will download and reformat the phone and word alignment files for Librispeech and save the alignments as dictionary files to `$alignment_data_dir`. These `.pkl` files map each phone/word type to a list of tuples `(utt_id, path_to_wav, start_time, end_time)`. This will take a few minutes. NOTE: In order to process the train splits as well (for _MI-*_ experiments), uncomment the relevant portions in the script.  
+This will download and reformat the phone and word alignment files for Librispeech and save the alignments as dictionary files to `$alignment_data_dir`. These `.json` files map each phone/word type to a list of tuples `(utt_id, path_to_wav, start_time, end_time)`. This might take 30 minutes. _Note_: Uncomment step #3 commands if you intend to apply MI tools, this will add a few more minutes of processing time.  
 
 ```
 data_sample=1
