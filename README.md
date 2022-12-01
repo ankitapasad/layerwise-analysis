@@ -63,7 +63,7 @@ This will randomly sample audio utterances and phone and word segment instances 
 
 The list of sampled utterance ids will be saved to the `data_samples/librispeech` directory.
 
-_What is `subset_id`?_
+#### _What is `subset_id`?_
 Understanding this is not necessary for CCA experiments since those are performed on the smaller dev splits. The following is relevant when sampling and processing utterances from train splits.
 
 For phone and word segments, the sampled set can be split further into subsets identified with numbers `0, 1, 2, ...`. These ids are referred to as `subset_id` in the next steps. This is done so that each subset can be processed in parallel for feature extraction. The extracted representations for each subset are concatenated into one single representation matrix before evaluating analysis scores.
