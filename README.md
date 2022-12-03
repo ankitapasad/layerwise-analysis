@@ -134,6 +134,14 @@ span=frame
 . scripts/get_cca_scores.sh $model_name $data_sample $exp_name $span $save_dir_pth
 ```
 
+In order to evaluate a single layer at a time, pass $layer_num to the same script
+```
+exp_name=cca_mel
+span=frame
+layer_num=T4 # process transformer layer 4
+. scripts/get_cca_scores.sh $model_name $data_sample $exp_name $span $save_dir_pth $layer_num
+```
+
 The following CCA experiments are possible:
 | $exp_name | $span |
 | --------- | ----- |

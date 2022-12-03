@@ -15,7 +15,7 @@ curr_dir = os.path.dirname(os.path.realpath(__file__))
 import sys
 
 sys.path.insert(0, os.path.join(curr_dir, ".."))
-from utils import save_dct, read_lst, format_time, load_dct
+from utils import save_dct, read_lst, format_time, load_dct, add_to_file
 from tools_utils import LAYER_CNT
 
 
@@ -32,10 +32,17 @@ class getCCA:
         sample_data_fn=None,
         span="phone",
         mean_score=False,
+        eval_single_layer=False,
+        layer_num=-1,
     ):
         """
         exp_name: cca-mel | cca-intra | cca-inter | cca-glove | cca-agwe
         """
+        print(eval_single_layer)
+        if eval_single_layer:
+            assert layer_num != -1
+        self.layer_num = layer_num
+        self.eval_single_layer = eval_single_layer
         self.num_conv_layers = LAYER_CNT[model_name]["local"]
         self.num_transformer_layers = LAYER_CNT[model_name]["contextualized"]
         self.fbank_dir = fbank_dir
@@ -53,6 +60,15 @@ class getCCA:
         self.span = span
         self.exp_name = exp_name
         self.mean_score = mean_score
+
+    def get_score_flag(self, layer_id):
+        get_score = False
+        if self.eval_single_layer:
+            if self.layer_num == layer_id:
+                get_score = True
+        else:
+            get_score = True
+        return get_score
 
     def get_cca_score(
         self,
@@ -111,61 +127,65 @@ class getCCA:
         layer_start = 1
 
         for layer_id in range(1, self.num_conv_layers + 1):
-            start_time = time.time()
-            fname = "layer_" + str(layer_id) + ".npy"
-            rep_mat = np.load(os.path.join(rep_dir_local, fname))
-            if layer_id != self.num_conv_layers:  # downsample model representations
-                view1 = all_fbank.T
-                subset = "downsampled"
-            else:
-                view1 = all_fbank_downsampled.T
-                subset = "original"
-            sim_score = self.get_cca_score(
-                view1,
-                rep_mat.T,
-                rep_dir_local,
-                f"C{layer_id}",
-                subset=subset,
-            )
+            if self.get_score_flag(f"C{layer_id}"):
+                start_time = time.time()
+                fname = "layer_" + str(layer_id) + ".npy"
+                rep_mat = np.load(os.path.join(rep_dir_local, fname))
+                if layer_id != self.num_conv_layers:  # downsample model representations
+                    view1 = all_fbank.T
+                    subset = "downsampled"
+                else:
+                    view1 = all_fbank_downsampled.T
+                    subset = "original"
+                sim_score = self.get_cca_score(
+                    view1,
+                    rep_mat.T,
+                    rep_dir_local,
+                    f"C{layer_id}",
+                    subset=subset,
+                )
 
         for layer_id in range(layer_start, self.num_transformer_layers + 1):
-            start_time = time.time()
-            fname = "layer_" + str(layer_id) + ".npy"
-            rep_mat = np.load(os.path.join(rep_dir_contextualized, fname))
-            sim_score = self.get_cca_score(
-                all_fbank_downsampled.T,
-                rep_mat.T,
-                rep_dir_contextualized,
-                f"T{layer_id}",
-            )
+            if self.get_score_flag(f"T{layer_id}"):
+                start_time = time.time()
+                fname = "layer_" + str(layer_id) + ".npy"
+                rep_mat = np.load(os.path.join(rep_dir_contextualized, fname))
+                sim_score = self.get_cca_score(
+                    all_fbank_downsampled.T,
+                    rep_mat.T,
+                    rep_dir_contextualized,
+                    f"T{layer_id}",
+                )
 
     def cca_intra(self):
         rep_dir = os.path.join(self.rep_dir, "contextualized", "frame_level")
         z_mat = np.load(os.path.join(rep_dir, f"layer_{self.base_layer}.npy"))
         for layer_id in range(1, self.num_transformer_layers + 1):
-            start_time = time.time()
-            c_mat = np.load(os.path.join(rep_dir, f"layer_{layer_id}.npy"))
-            sim_score = self.get_cca_score(
-                z_mat.T,
-                c_mat.T,
-                rep_dir,
-                layer_id,
-            )
+            if self.get_score_flag(layer_id):
+                start_time = time.time()
+                c_mat = np.load(os.path.join(rep_dir, f"layer_{layer_id}.npy"))
+                sim_score = self.get_cca_score(
+                    z_mat.T,
+                    c_mat.T,
+                    rep_dir,
+                    layer_id,
+                )
 
     def cca_inter(self):
         rep_dir1 = os.path.join(self.rep_dir, "contextualized", "frame_level")
         rep_dir2 = os.path.join(self.rep_dir2, "contextualized", "frame_level")
         for layer_id in range(1, self.num_transformer_layers + 1):
-            start_time = time.time()
-            c_mat1 = np.load(os.path.join(rep_dir1, f"layer_{layer_id}.npy"))
-            c_mat2 = np.load(os.path.join(rep_dir2, f"layer_{layer_id}.npy"))
-            sim_score = self.get_cca_score(
-                c_mat1.T,
-                c_mat2.T,
-                rep_dir1,
-                layer_id,
-                rep_dir2=rep_dir2,
-            )
+            if self.get_score_flag(layer_id):
+                start_time = time.time()
+                c_mat1 = np.load(os.path.join(rep_dir1, f"layer_{layer_id}.npy"))
+                c_mat2 = np.load(os.path.join(rep_dir2, f"layer_{layer_id}.npy"))
+                sim_score = self.get_cca_score(
+                    c_mat1.T,
+                    c_mat2.T,
+                    rep_dir1,
+                    layer_id,
+                    rep_dir2=rep_dir2,
+                )
 
     def get_num_splits(self):
         search_str = self.sample_data_fn.replace("_0.json", "_*.json")
@@ -197,30 +217,31 @@ class getCCA:
         num_splits = self.get_num_splits()
         all_labels = []
         for layer_id in range(self.num_transformer_layers + 1):
-            start_time = time.time()
-            all_rep = []
-            for split_num in range(num_splits):
-                rep_fn = os.path.join(rep_dir, str(split_num), f"layer_{layer_id}.npy")
-                rep_mat = np.load(rep_fn)
-                all_rep.extend(rep_mat)
-                if layer_id == 0:
-                    self.update_label_lst(split_num, all_labels, rep_dir)
+            if self.get_score_flag(layer_id):
+                start_time = time.time()
+                all_rep = []
+                for split_num in range(num_splits):
+                    rep_fn = os.path.join(rep_dir, str(split_num), f"layer_{layer_id}.npy")
+                    rep_mat = np.load(rep_fn)
+                    all_rep.extend(rep_mat)
+                    if layer_id == 0 or self.eval_single_layer:
+                        self.update_label_lst(split_num, all_labels, rep_dir)
 
-            all_rep = np.array(all_rep)  # N x d
-            if layer_id == 0:
-                valid_indices = self.filter_label_lst(all_labels, embed_dct)
-                all_embed = np.array(
-                    [embed_dct[all_labels[idx1]] for idx1 in valid_indices]
+                all_rep = np.array(all_rep)  # N x d
+                if layer_id == 0 or self.eval_single_layer:
+                    valid_indices = self.filter_label_lst(all_labels, embed_dct)
+                    all_embed = np.array(
+                        [embed_dct[all_labels[idx1]] for idx1 in valid_indices]
+                    )
+                    valid_label_lst = [all_labels[idx1] for idx1 in valid_indices]
+                all_rep = all_rep[np.array(valid_indices)]
+                sim_score = self.get_cca_score(
+                    all_rep.T,
+                    all_embed.T,
+                    rep_dir,
+                    layer_id,
+                    label_lst=valid_label_lst,
                 )
-                valid_label_lst = [all_labels[idx1] for idx1 in valid_indices]
-            all_rep = all_rep[np.array(valid_indices)]
-            sim_score = self.get_cca_score(
-                all_rep.T,
-                all_embed.T,
-                rep_dir,
-                layer_id,
-                label_lst=valid_label_lst,
-            )
 
     def cca_word(self):
         self.cca_embed()
@@ -369,6 +390,8 @@ def evaluate_cca(
     sample_data_fn=None,
     span="phone",
     mean_score=False,
+    eval_single_layer=False,
+    layer_num=-1,
 ):
     cca_obj = getCCA(
         model_name,
@@ -381,13 +404,28 @@ def evaluate_cca(
         sample_data_fn,
         span,
         mean_score,
+        eval_single_layer,
+        layer_num
     )
     getattr(cca_obj, exp_name)()
 
     if mean_score:
         save_fn = save_fn.replace(".json", "_mean.json")
-    save_dct(save_fn, cca_obj.score_dct)
-
+    
+    if eval_single_layer:
+        assert len(cca_obj.score_dct) == 1
+        sample_num = save_fn.split("_")[-1].split(".")[0][-1]
+        save_fn = "_".join(save_fn.split("_")[:-1]) + ".lst"
+        add_to_file(
+            ",".join(
+                list(map(str, [layer_num, sample_num, cca_obj.score_dct[layer_num]]))
+            )
+            + "\n",
+            save_fn,
+        )
+    else:
+        save_dct(save_fn, cca_obj.score_dct)
+    print(f"Result saved at {save_fn}")
 
 def evaluate_wordsim(model_name, wordsim_task_fn, embedding_dir, save_fn):
     wordsim_tasks = load_dct(wordsim_task_fn)

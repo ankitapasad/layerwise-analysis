@@ -3,6 +3,7 @@ data_sample=$2
 exp_name=$3
 span=$4
 save_dir_pth=$5
+layer_num=$6
 
 dataset=librispeech
 dataset_split=dev-clean
@@ -23,6 +24,17 @@ else
     save_fn="$save_dir/${exp_name}_${dataset_split}_sample${data_sample}.json"
 fi
 
+if [ -z "$layer_num" ]
+then
+    layer_num=-1
+    eval_single_layer=False
+    echo "Evaluating all layers for ${exp_name}"
+else
+    eval_single_layer=True
+    echo "Evaluating layer ${layer_num} for ${exp_name}"
+    echo $eval_single_layer
+fi
+
 python codes/tools/get_scores.py cca \
 --save_fn `realpath $save_fn` \
 --rep_dir `realpath $rep_dir` \
@@ -33,4 +45,6 @@ python codes/tools/get_scores.py cca \
 --rep_dir2 $rep_dir2 \
 --embed_dir $embed_dir \
 --sample_data_fn `realpath $sample_data_fn` \
---span $span
+--span $span \
+--eval_single_layer $eval_single_layer \
+--layer_num $layer_num 
