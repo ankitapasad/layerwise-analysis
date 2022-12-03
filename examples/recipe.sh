@@ -1,4 +1,4 @@
-path_to_librispeech_data=/share/data/speech/Datasets/LibriSpeech/LibriSpeech
+path_to_librispeech_data=$1
 save_dir_pth=save
 alignment_data_dir=data_samples/librispeech/alignments
 data_sample=1

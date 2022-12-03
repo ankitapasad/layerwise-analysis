@@ -16,11 +16,11 @@ save_dir="logs/${dataset}_${model_name}"
 mkdir -p $save_dir
 embed_dir="$save_dir_pth/embeddings"
 rep_dir2="${save_dir_pth}/${model_name}_${ft_data}/${sub_dir_name}"
-sample_data_fn="data_samples/librispeech/${span}_level/${dataset_split}_segments_sample${data_sample}_0.pkl"
+sample_data_fn="data_samples/librispeech/${span}_level/${dataset_split}_segments_sample${data_sample}_0.json"
 if [ "$exp_name" = "cca_intra" ]; then
-    save_fn="$save_dir/cca-wrt-layer${base_layer}_${dataset_split}_sample${data_sample}.pkl"
+    save_fn="$save_dir/cca-wrt-layer${base_layer}_${dataset_split}_sample${data_sample}.json"
 else
-    save_fn="$save_dir/${exp_name}_${dataset_split}_sample${data_sample}.pkl"
+    save_fn="$save_dir/${exp_name}_${dataset_split}_sample${data_sample}.json"
 fi
 
 python codes/tools/get_scores.py cca \

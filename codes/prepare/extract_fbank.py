@@ -78,8 +78,8 @@ def save_rep(utt_id_fn, save_dir, data_split=None):
     frame_shift_ms = 160 / 16000
     hours = frames * frame_shift_ms / 3600
     print(
-        "Wrote {} utterances, {} frames ({:.2f} hours)".format(
-            len(lengths), frames, hours
+        "Wrote {} utterances, {} frames ({:.2f} hours) to {}".format(
+            len(lengths), frames, hours, save_dir
         )
     )
     print(f"Time for extracting filterbanks for 500 utterances: {format_time(start)}")

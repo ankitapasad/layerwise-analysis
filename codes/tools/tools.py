@@ -167,6 +167,7 @@ class CCACrossVal:
         self.num_reg_param_values = num_reg_param_values
         self.layer_num = layer_num
         self.all_train_scores = []
+        self.best_train_epsilon_tuples = []
         self.mean_score = mean_score
         self.train = train
         self.all_train_scores_dct = {}

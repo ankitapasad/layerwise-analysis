@@ -65,6 +65,7 @@ def save_rep(
     transformed_fbank_lst, truncated_fbank_lst = [], []
     # quantized representations
     quantized_features, quantized_indices = [], []
+    quantized_features_dct, discrete_indices_dct = {}, {}
 
     start = time.time()
     for item in tqdm(utt_id_lst):
@@ -96,8 +97,11 @@ def save_rep(
             extract_obj.extract_contextualized_rep(rep_dct, time_stamp_lst, label_lst)
 
         elif rep_type == "quantized":
-            quantized_features, quantized_indices = extract_obj.extract_quantized_rep(
-                quantized_features, quantized_indices
+            extract_obj.extract_quantized_rep(
+                quantized_features,
+                quantized_indices,
+                quantized_features_dct,
+                discrete_indices_dct,
             )
 
     if span in ["phone", "word"]:
@@ -124,7 +128,11 @@ def save_rep(
         idx_mat = np.concatenate(quantized_indices, 0)
         np.save(os.path.join(save_dir, "features.npy"), rep_mat)
         np.save(os.path.join(save_dir, "indices.npy"), idx_mat)
-
+        save_dct(
+            os.path.join(save_dir, "quantized_features.pkl"), quantized_features_dct
+        )
+        save_dct(os.path.join(save_dir, "discrete_indices.pkl"), discrete_indices_dct)
+        
     print("%s representations saved to %s" % (rep_type, save_dir))
 
     print("Time required: %.1f mins" % ((time.time() - start) / 60))

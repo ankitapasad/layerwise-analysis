@@ -4,7 +4,6 @@ alignment_dir=$3
 rep_dir_pth=$4
 num_instances=$5 # number of instances for each word
 
-# data_dir="/share/data/speech/Datasets/LibriSpeech/LibriSpeech"
 dataset=librispeech
 
 # extraction for words that appear in wordsim	

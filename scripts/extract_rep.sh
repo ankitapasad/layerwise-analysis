@@ -1,23 +1,25 @@
 model_name=$1
 ckpt_dir=$2
 data_sample=$3
-model_type=$4
-rep_type=$5
-span=$6
-subset_id=$7
-dataset_split=$8
-save_dir_pth=$9
+rep_type=$4
+span=$5
+subset_id=$6
+dataset_split=$7
+save_dir_pth=$8
+pckg_dir=$9
+
+model_type=pretrained
 
 if [[ $model_name == "avhubert"* ]]; then
-	pckg_dir="packages/av_hubert/avhubert"
+	pckg_dir="$pckg_dir/av_hubert/avhubert"
 elif [[ $model_name == "wavlm"* ]]; then
-	pckg_dir="packages/unilm/wavlm"
+	pckg_dir="$pckg_dir/unilm/wavlm"
 elif [[ $model_name == "fastvgs"* ]]; then
-	pckg_dir="packages/FaST-VGS-Family"
+	pckg_dir="$pckg_dir/FaST-VGS-Family"
 elif [[ $model_name == "xlsr"* ]]; then
-	pckg_dir="packages/"
+	pckg_dir="$pckg_dir"
 else
-	pckg_dir="packages/"
+	pckg_dir="$pckg_dir"
 fi
 
 if [[ $model_name == "fastvgs"* ]]; then
@@ -34,11 +36,16 @@ if [ "$span" = "frame" ]; then
 	save_dir="${save_dir_pth}/${model_name}/${dataset}_${dataset_split}_sample${data_sample}/${rep_type}/${span}_level"
 else
 	mean_pooling=True
-	utt_id_fn="data_samples/librispeech/${span}_level/${dataset_split}_segments_sample${data_sample}_${subset_id}.pkl"
+	utt_id_fn="data_samples/librispeech/${span}_level/${dataset_split}_segments_sample${data_sample}_${subset_id}.json"
 	if [ "$span" = "phone" ]; then
 		offset=True
 	fi
 	save_dir="${save_dir_pth}/${model_name}/${dataset}_${dataset_split}_sample${data_sample}/${rep_type}/${span}_level/${subset_id}"
+fi
+
+echo "Removing any existing features extracted for sample ${data_sample}"
+if [ -f $save_dir ]; then
+	rm -r $save_dir
 fi
 
 fbank_dir="${save_dir_pth}/fbanks/${dataset}_${dataset_split}_sample${data_sample}/"

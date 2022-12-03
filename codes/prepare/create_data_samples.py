@@ -1,4 +1,3 @@
-from posixpath import split
 import fire
 from glob import glob
 import numpy as np
@@ -223,10 +222,10 @@ def sample_segments(
     num_tokens,
     data_sample,
     save_dir,
-    wordsim_data_dir,
+    dur_threshold=10000,
 ):
     sample_obj = tokenLevelSamples(
-        data_split, data_dir, data_sample, token_type, save_dir, wordsim_data_dir
+        data_split, data_dir, data_sample, token_type, save_dir, dur_threshold
     )
     getattr(sample_obj, f"sample_{token_type}_alignments")(num_tokens)
 

@@ -1,0 +1,14 @@
+data/
+data_samples/
+exe/
+model/
+plots/
+results/
+save/
+
+**/*.ipynb
+**/__pycache__/
+**/.DS_Store
+**/*.pyc
+
+run.sh

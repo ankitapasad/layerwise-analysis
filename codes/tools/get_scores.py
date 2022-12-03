@@ -9,7 +9,7 @@ from operator import itemgetter
 import os
 import time
 
-from tools import get_cca_score, get_mi_score, get_similarity_score
+import tools
 
 curr_dir = os.path.dirname(os.path.realpath(__file__))
 import sys
@@ -186,7 +186,9 @@ class getCCA:
         for idx, label in enumerate(all_labels):
             if label not in embed_dct:
                 valid_indices.remove(idx)
-
+        print(
+            f"{num_labels-len(valid_indices)} of {num_labels} {self.span} segments dropped"
+        )
         return valid_indices
 
     def cca_embed(self):
@@ -207,9 +209,6 @@ class getCCA:
             all_rep = np.array(all_rep)  # N x d
             if layer_id == 0:
                 valid_indices = self.filter_label_lst(all_labels, embed_dct)
-                print(
-                    f"{num_labels-len(valid_indices)} of {num_labels} {self.span} segments dropped"
-                )
                 all_embed = np.array(
                     [embed_dct[all_labels[idx1]] for idx1 in valid_indices]
                 )
@@ -277,7 +276,7 @@ class getMI:
             # n_clusters = 5000
             n_clusters = num_clusters
             batch_size = 4000
-        self.mi_score = get_mi_score(
+        self.mi_score = tools.get_mi_score(
             n_clusters,
             batch_size,
             max_iter,
@@ -403,7 +402,7 @@ def evaluate_wordsim(model_name, wordsim_task_fn, embedding_dir, save_fn):
         res_dct["macro average"][layer_num] = 0
         num_pairs = 0
         for task_name, task_lst in wordsim_tasks.items():
-            srho_score = get_similarity_score(task_lst, embed_dct)
+            srho_score = tools.get_similarity_score(task_lst, embed_dct)
             res_dct["micro average"][layer_num] += srho_score * len(task_lst)
             res_dct["macro average"][layer_num] += srho_score
             num_pairs += len(task_lst)

@@ -45,25 +45,6 @@ class ModelLoader:
         encoder = models[0]
         return encoder, task.cfg
 
-    def wav2vec(self):
-        if self.model_type == "finetuned":
-            assert self.dict_fn
-            model, _, task = fairseq.checkpoint_utils.load_model_ensemble_and_task(
-                [self.ckpt_pth],
-                arg_overrides={"data": self.dict_dn},
-            )
-            model = model[0]
-            encoder = model.w2v_encoder._modules["w2v_model"]
-        else:
-            (
-                encoder,
-                _,
-                task,
-            ) = fairseq.checkpoint_utils.load_model_ensemble_and_task([self.ckpt_pth])
-            encoder = encoder[0]
-        task_cfg = task.cfg
-        return encoder, task_cfg
-
     def fairseq_model_loader(self):
         if self.model_type == "finetuned":
             assert self.dict_fn
@@ -101,7 +82,7 @@ class ModelLoader:
 
     def fastvgs(self):
         sys.path.append(self.pckg_dir)
-        from models import fast_vgs_edit, w2v2_model
+        from models import w2v2_model
 
         args = load_dct(f"{self.ckpt_pth}/args.pkl")
         weights = torch.load(f"{self.ckpt_pth}/best_bundle.pth")
@@ -119,16 +100,25 @@ class ModelLoader:
 
     def fastvgs_plus_coco(self):
         self.fastvgs()
+    
+    def randominit(self):
+        """
+        Uses pre-trained model ckpt to obtain model arguments and task config
+        """
+        import fairseq.models.wav2vec.wav2vec2 as w2v
+        _, args, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([self.ckpt_pth])
+        task_cfg = task.cfg
+        cfg_cls = w2v.Wav2Vec2Config(**args['model'])
+        encoder = w2v.Wav2Vec2Model(cfg_cls)
+        return encoder, task_cfg
 
 
 class DataLoader:
     def __init__(
         self,
-        utt_id,
         wav_fn,
         task_cfg=None,
     ):
-        self.utt_id = utt_id
         self.audio, self.fs = sf.read(wav_fn)
         self.task_cfg = task_cfg
 
@@ -193,6 +183,10 @@ class DataLoader:
         in_data = self.fairseq_indata()
         return in_data
 
+    def randominit(self):
+        in_data = self.fairseq_indata()
+        return in_data
+
     def fastvgs(self):
         assert self.fs == 16000
         in_data = (self.audio - np.mean(self.audio)) / np.std(self.audio)
@@ -222,7 +216,7 @@ class FeatExtractor:
         offset=False,
         mean_pooling=False,
     ):
-        data_obj = DataLoader(utt_id, wav_fn, task_cfg)
+        data_obj = DataLoader(wav_fn, task_cfg)
         self.task_cfg = task_cfg
         self.model_name = model_name
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -240,6 +234,7 @@ class FeatExtractor:
             self.fbank = np.load(os.path.join(fbank_dir, utt_id + ".npy"))
         self.contextualized_features = {}
         self.local_features = {}
+        self.utt_id = utt_id
 
     def avhubert(self):
         # model only has a projection layer before the transformer module
@@ -338,6 +333,9 @@ class FeatExtractor:
         self.n_frames = self.contextualized_features[0].shape[0]
         self.stride_sec = 20 / 1000
 
+    def randominit(self):
+        self.fairseq_extractor()
+
     def transform_rep(self, kernel_size, stride, layer_rep):
         """
         Transform local z representations to match the fbank features' stride and receptive field
@@ -425,7 +423,10 @@ class FeatExtractor:
         return np.arange(start_id, end_id)
 
     def extract_contextualized_rep(self, rep_dct, time_stamp_lst=None, label_lst=None):
-        num_layers = len(self.contextualized_features)
+        if self.model_name == "fastvgs_coco":
+            num_layers = 9
+        else:
+            num_layers = len(self.contextualized_features)
         for layer_num in range(num_layers):
             c_rep = self.contextualized_features[layer_num]
             if time_stamp_lst:
@@ -435,15 +436,23 @@ class FeatExtractor:
                     if layer_num == 0 and label_lst is not None:
                         label_lst.append(token)
             else:
-                self.update_dct(np.arange(0, self.n_frames), c_rep, rep_dct, layer_num)
+                self.update_dct(np.arange(0, len(c_rep)), c_rep, rep_dct, layer_num)
 
-    def extract_quantized_rep(self, quantized_features, quantized_indices):
+    def extract_quantized_rep(
+        self,
+        quantized_features,
+        quantized_indices,
+        quantized_features_dct,
+        discrete_indices_dct,
+    ):
         idx_lst = np.arange(0, self.n_frames)
         z_discrete = self.z_discrete.squeeze(0).cpu().numpy()[idx_lst]
         indices = self.indices.squeeze(0).cpu().numpy()[idx_lst]
         quantized_features.append(z_discrete)
         quantized_indices.append(indices)
-        return quantized_features, quantized_indices
+        assert self.utt_id not in quantized_features_dct
+        quantized_features_dct[self.utt_id] = z_discrete
+        discrete_indices_dct[self.utt_id] = indices
 
     def save_rep_to_file(self, rep_dct, out_dir):
         for layer_num, rep_lst in rep_dct.items():

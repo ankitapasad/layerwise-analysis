@@ -5,7 +5,7 @@ The `for ...` loops in the script are written so only to give the user an idea o
 Before running the recipe:
 1. Make sure that the paths are set correctly to reflect
 - Librispeech data location (`path_to_librispeech_data`)
-- Location where you want the alignment files to be saved(`alignment_data_dir`) -- it take _6Gb_ of space
+- Location where you want the alignment files to be saved(`alignment_data_dir`) -- it takes _6Gb_ of space
 - Location where the extracted representation files should be saved (`save_dir_pth`) -- the representations extracted form each dev-clean sample set take upto _12Gb_ and for each train-clean sample set _23Gb_.
 
 2. You can change the `steps` variable to skip the steps previously done. For example, if you already have the alignment files saved at `alignment_data_dir`, set `steps=2` so that the script skips that step and goes over to the data sampling and extraction step (step 2)
