@@ -134,7 +134,7 @@ span=frame
 . scripts/get_cca_scores.sh $model_name $data_sample $exp_name $span $save_dir_pth
 ```
 
-In order to evaluate a single layer at a time, pass $layer_num to the same script
+In order to evaluate a single layer at a time, pass `$layer_num` to the same script
 ```
 exp_name=cca_mel
 span=frame
