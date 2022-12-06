@@ -24,7 +24,15 @@ The following canonical correlation analysis (CCA) and mutual information (MI) e
 8. mi-word
 
 # Usage
-Follow the next steps in order to generate property content trends for pretrained models from raw wavforms and alignments. Each step is accompanied by a short explanation. You can also find an abridged and collated version of these steps at [examples/recipe.sh](https://github.com/ankitapasad/layerwise-analysis/blob/main/examples/recipe.sh). You can run the script as `. examples/recipe.sh $path_to_librispeech_data` after performing steps 0, 1, and 2a below. Read the accompanying [README.md](https://github.com/ankitapasad/layerwise-analysis/blob/main/examples/README.md) with the recipe script before you run it.
+Follow the next steps in order to generate property content trends for pretrained models from raw wavforms and alignments. Each step is accompanied by a short explanation.
+
+You can also find an abridged and collated version of these steps at [examples/recipe.sh](https://github.com/ankitapasad/layerwise-analysis/blob/main/examples/recipe.sh). 
+
+```
+. examples/recipe.sh $path_to_librispeech_data $ckpt_dir $pckg_dir
+``` 
+Perform steps 0, 1, and 2a below, and read the accompanying [README.md](https://github.com/ankitapasad/layerwise-analysis/blob/main/examples/README.md) before running the script. 
+ 
 
 ## 0. Pre-trained checkpoints and related setup
 Install the relevant model packages to `$pckg_dir` and download the pre-trained models in `$ckpt_dir`. The default inference in most model packages does not directly return layerwise outputs. This can that can be easily fixed with minor edits to their model files. The edited files are added to the `modellib_addons/` directory.
