@@ -32,8 +32,7 @@ class ModelLoader:
         cfg = WavLMConfig(ckpt["cfg"])
         encoder = WavLM(cfg)
         encoder.load_state_dict(ckpt["model"])
-        task_cfg = None
-        return encoder, task_cfg
+        return encoder, cfg
 
     def avhubert(self):
         from argparse import Namespace
@@ -159,6 +158,8 @@ class DataLoader:
 
     def wavlm(self):
         in_data = torch.from_numpy(np.expand_dims(self.audio, 0).astype("float32"))
+        if self.task_cfg.normalize:
+            in_data = F.layer_norm(in_data, in_data.shape)
         return in_data
 
     def fairseq_indata(self):
