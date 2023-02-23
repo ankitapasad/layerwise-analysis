@@ -525,13 +525,11 @@ class Wav2Vec2Model(BaseFairseqModel):
     ):
 
         if self.feature_grad_mult > 0:
-            # features = self.feature_extractor(source)
             features, _ = self.feature_extractor(source)
             if self.feature_grad_mult != 1.0:
                 features = GradMultiply.apply(features, self.feature_grad_mult)
         else:
             with torch.no_grad():
-                # features = self.feature_extractor(source)
                 features, _ = self.feature_extractor(source)
 
         features_pen = features.float().pow(2).mean()
@@ -814,7 +812,7 @@ class ConvFeatureExtractionModel(nn.Module):
         for conv in self.conv_layers:
             x = conv(x)
             all_rep.append(x)
-        # return x
+
         return x, all_rep
 
 
@@ -887,7 +885,7 @@ class TransformerEncoder(nn.Module):
         # B x T x C -> T x B x C
         x = x.transpose(0, 1)
 
-        layer_results = []
+        layer_results = [(x, x, x)]
         r = None
         for i, layer in enumerate(self.layers):
             dropout_probability = np.random.random()
