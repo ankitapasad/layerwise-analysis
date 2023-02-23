@@ -285,15 +285,10 @@ class FeatExtractor:
             if self.rep_type == "quantized" and "hubert" not in self.model_name:
                 self.z_discrete, self.indices = self.encoder.quantize(self.in_data)
         if self.rep_type == "contextualized":
-            self.contextualized_features[0] = (
-                in_rep.transpose(1, 2).squeeze(0).cpu().numpy()
-            )
-            layer_num = 1
-            for layer_rep in encoder_out["layer_results"]:
+            for layer_num, layer_rep in enumerate(encoder_out["layer_results"]):
                 self.contextualized_features[layer_num] = (
                     layer_rep[0].squeeze(1).cpu().numpy()
                 )
-                layer_num += 1
         if self.rep_type == "local":
             self.local_features = local_features
         self.n_frames = len(in_rep.transpose(1, 2).squeeze(0))
