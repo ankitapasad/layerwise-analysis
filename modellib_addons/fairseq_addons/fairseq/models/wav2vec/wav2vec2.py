@@ -1043,7 +1043,7 @@ class TransformerEncoder(nn.Module):
         # B x T x C -> T x B x C
         x = x.transpose(0, 1)
 
-        layer_results = []
+        layer_results = [(x, x, x)]
         r = None
         for i, layer in enumerate(self.layers):
             dropout_probability = np.random.random() if self.layerdrop > 0 else 1
