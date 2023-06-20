@@ -254,9 +254,14 @@ class PlotCCAScores():
         plt.savefig(dpi=300, bbox_inches='tight', fname=save_name)
         plt.close()
 
-def main(exp_name, plot_type, ext, baselines=False):
+def main(exp_name, plot_type, ext, plot_baselines=False):
+    """
+    plot_type: small or large; used as key for self.model_names dict
+    ext: png or pdf
+    plot_baselines: Bool (whether to plot with baselines)
+    """
     plot_obj = PlotCCAScores(ext)
-    plot_obj.plot_scores(exp_name, plot_type, baselines)
+    plot_obj.plot_scores(exp_name, plot_type, plot_baselines)
 
 if __name__ == "__main__":
     fire.Fire(main) 
