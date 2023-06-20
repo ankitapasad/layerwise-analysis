@@ -5,15 +5,15 @@ Takes results saved as json file: example /share/data/speech/hackathon_2022/resu
 """
 
 import fire
+import json
 import numpy as np
 import os
-import sys
 
-curr_dir = os.path.dirname(os.path.realpath(__file__))
-import sys
+# curr_dir = os.path.dirname(os.path.realpath(__file__))
+# import sys
 
-sys.path.insert(0, os.path.join(curr_dir, ".."))
-from utils import read_lst, load_dct, save_pkl, write_to_file
+# sys.path.insert(0, os.path.join(curr_dir, ".."))
+# from utils import read_lst, load_dct, save_pkl, write_to_file
 
 import matplotlib
 matplotlib.rcParams.update({'figure.autolayout': True})
@@ -34,6 +34,10 @@ plt.rc('ytick', labelsize=11)    # fontsize of the tick labels
 # plt.rc('ytick', labelsize=18)    # fontsize of the tick labels
 plt.rc('legend', fontsize=14)    # legend fontsize
 # plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
+def load_json(fname):
+    data = json.loads(open(fname).read())
+    return data
 
 class PlotCCAScores():
     def __init__(self, ext="png"):
@@ -113,11 +117,14 @@ class PlotCCAScores():
             "naive": {"clr": "blue", "linestyle": "-", "marker": ""},
         } 
         self.fname_map = {
-            "semantic": "qvec_semantic",
-            "syntactic": "qvec_syntactic",
+            "semantic": "cca_ci_semantic",
+            "syntactic": "cca_ci_syntactic",
             "wordsim_relatedness": "wordsim_iter0_200instances_split2",
             "wordsim_similarity": "wordsim_iter0_200instances_split2",
             "spoken_sts": "spoken_sts_1",
+            "glove": "cca_ci_glove",
+            "agwe": "cca_ci_agwe",
+            "word": "cca_word",
         }
         self.ext = ext
 
@@ -130,15 +137,18 @@ class PlotCCAScores():
     def read_scores(self, model_name, exp_name, model_type, my_xticks, x, baseline=False, baseline_embed=None):
         if baseline:
             assert baseline_embed is not None
-            fname = os.path.join(self.res_dir, "mean_scores", f"baseline_cca_ci_{exp_name}_vs_{baseline_embed}_embed.json")
+            fname = os.path.join(self.res_dir, "mean_scores", f"baseline_{self.fname_map[exp_name]}_vs_{baseline_embed}_embed.json")
         else:
-            fname = os.path.join(self.res_dir, "mean_scores", f"{model_name}_cca_ci_{exp_name}.json")
+            if exp_name in self.fname_map:
+                fname = os.path.join(self.res_dir, "mean_scores", f"{model_name}_{self.fname_map[exp_name]}.json")
+            else:
+                fname = os.path.join(self.res_dir, "mean_scores", f"{model_name}_{exp_name}.json")
             # fname = os.path.join(self.res_dir, f"librispeech_{model_name}", f"{self.fname_map[exp_name]}.json")
         scores_exist = False
         if os.path.exists(fname):
             scores_exist = True
             try:
-                res_dct = load_dct(fname)
+                res_dct = load_json(fname)
             except:
                 print("Error reading scores")
                 import pdb; pdb.set_trace()
@@ -164,9 +174,12 @@ class PlotCCAScores():
             return scores_exist, -1
         return scores_exist, mean_score_lst
 
-    def plot_scores(self, exp_name, plot_type="small"):
+    def plot_scores(self, exp_name, plot_type="small", plot_baselines=False):
         x_label = "Transformer layer number"
-        y_label = self.exp_name_map[exp_name]
+        if "exp_name" in self.exp_name_map :
+            y_label = self.exp_name_map[exp_name]
+        else:
+            y_label = exp_name
         fig, ax = plt.subplots(nrows=2, ncols=1)
         for idx, model_type in list(enumerate(self.model_names.keys())):
             single_score_exists = False
@@ -197,26 +210,27 @@ class PlotCCAScores():
                     label=self.model_name_map_og[model_name_2],
                     lw=2.0
                     )
-            for baseline_name in self.baselines:
-                if baseline_name != exp_name:
-                    model_name_2 = self.model_legend_label(baseline_name)
-                    style_params = self.model_name_to_style[baseline_name]
-                    scores_exist, mean_score_lst = self.read_scores(baseline_name, exp_name, model_type, my_xticks, x, baseline=True, baseline_embed=baseline_name)
-                    single_score_exists = single_score_exists or scores_exist
-                    if scores_exist:
-                        # lower_lim, upper_lim = self.exp_name_to_y_lim[exp_name][model_type]
-                        label_str = f"{self.model_name_map_og[model_name_2]}"
-                        # if mean_score_lst[0] < lower_lim or mean_score_lst[0] > upper_lim:
-                        #     label_str += f" ({np.round(mean_score_lst[0], 2)})"
-                        ax[idx].plot(
-                        x[:len(mean_score_lst)],
-                        mean_score_lst,
-                        linestyle=style_params["linestyle"],
-                        color=style_params["clr"],
-                        marker=style_params["marker"],
-                        label= label_str,
-                        lw=2.0
-                        )
+            if plot_baselines:
+                for baseline_name in self.baselines:
+                    if baseline_name != exp_name:
+                        model_name_2 = self.model_legend_label(baseline_name)
+                        style_params = self.model_name_to_style[baseline_name]
+                        scores_exist, mean_score_lst = self.read_scores(baseline_name, exp_name, model_type, my_xticks, x, baseline=True, baseline_embed=baseline_name)
+                        single_score_exists = single_score_exists or scores_exist
+                        if scores_exist:
+                            # lower_lim, upper_lim = self.exp_name_to_y_lim[exp_name][model_type]
+                            label_str = f"{self.model_name_map_og[model_name_2]}"
+                            # if mean_score_lst[0] < lower_lim or mean_score_lst[0] > upper_lim:
+                            #     label_str += f" ({np.round(mean_score_lst[0], 2)})"
+                            ax[idx].plot(
+                            x[:len(mean_score_lst)],
+                            mean_score_lst,
+                            linestyle=style_params["linestyle"],
+                            color=style_params["clr"],
+                            marker=style_params["marker"],
+                            label= label_str,
+                            lw=2.0
+                            )
             if single_score_exists:
                 if model_type == "large" and plot_type == "small":
                     ax[idx].set_xticks(x[::2])
@@ -240,9 +254,9 @@ class PlotCCAScores():
         plt.savefig(dpi=300, bbox_inches='tight', fname=save_name)
         plt.close()
 
-def main(exp_name, plot_type, ext):
+def main(exp_name, plot_type, ext, baselines=False):
     plot_obj = PlotCCAScores(ext)
-    plot_obj.plot_scores(exp_name, plot_type)
+    plot_obj.plot_scores(exp_name, plot_type, baselines)
 
 if __name__ == "__main__":
     fire.Fire(main) 
