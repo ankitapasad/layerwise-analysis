@@ -176,7 +176,7 @@ class PlotCCAScores():
 
     def plot_scores(self, exp_name, plot_type="small", plot_baselines=False):
         x_label = "Transformer layer number"
-        if "exp_name" in self.exp_name_map :
+        if exp_name in self.exp_name_map :
             y_label = self.exp_name_map[exp_name]
         else:
             y_label = exp_name
