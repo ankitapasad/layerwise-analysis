@@ -1,4 +1,7 @@
-This codebase puts together tools and experiments to analyze self-supervised speech representations. These analysis techniques can be used to replicate the findings presented in [Layer-Wise analysis of a self-supervised speech representation model](https://arxiv.org/abs/2107.04734) and [Comparative layer-wise analysis of self-supervised speech models](https://arxiv.org/abs/2211.03929).
+This codebase puts together tools and experiments to analyze self-supervised speech representations. These analysis techniques can be used to replicate the findings presented in 
+1. [Layer-Wise analysis of a self-supervised speech representation model](https://arxiv.org/abs/2107.04734)
+2. [Comparative layer-wise analysis of self-supervised speech models](https://arxiv.org/abs/2211.03929)
+3. [What do self-supervised speech models know about words?](https://arxiv.org/abs/2307.00162)
 
 <img src="https://github.com/ankitapasad/layerwise-analysis/blob/main/fig/all-in-one.jpg" data-canonical-src="https://github.com/ankitapasad/layerwise-analysis/blob/main/fig/all-in-one.jpg" width="650" height="400" />
 
