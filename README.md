@@ -62,7 +62,7 @@ You can find an abridged and collated version of these steps at [examples/recipe
 ```
 . examples/recipe.sh $path_to_librispeech_data $ckpt_dir $pckg_dir
 ``` 
-Perform step 3a below, and read the accompanying [README.md](https://github.com/ankitapasad/layerwise-analysis/blob/main/examples/README.md) before running the script. 
+Perform step 1a below, and read the accompanying [README.md](https://github.com/ankitapasad/layerwise-analysis/blob/main/examples/README.md) before running the script. 
 
 ## 1. Data preparation
 ### a. Download dataset 
