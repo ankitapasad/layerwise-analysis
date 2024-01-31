@@ -5,6 +5,11 @@ This codebase puts together tools and experiments to analyze self-supervised spe
 
 <img src="https://github.com/ankitapasad/layerwise-analysis/blob/main/fig/all-in-one.jpg" data-canonical-src="https://github.com/ankitapasad/layerwise-analysis/blob/main/fig/all-in-one.jpg" width="650" height="400" />
 
+# Table of Contents
+- [Current support](#current-support)
+- [Setup and Installation](#setup-and-installation)
+- [Usage](#usage)
+  
 # Current support
 ## Pre-trained models
 The codebase currently supports data loading and feature extraction for the following publicly available _pre-trained_ models:
@@ -23,24 +28,12 @@ The following canonical correlation analysis (CCA) and mutual information (MI) e
 4. cca-word
 5. cca-agwe
 6. cca-glove
-7. mi-phone
-8. mi-word
+7. [coming soon] cca-semantics
+8. [coming soon] cca-syntactic
+9. mi-phone
+10. mi-word
 
-# Usage
-Follow the next steps in order to generate property content trends for pretrained models from raw wavforms and alignments. Each step is accompanied by a short explanation.
-
-You can also find an abridged and collated version of these steps at [examples/recipe.sh](https://github.com/ankitapasad/layerwise-analysis/blob/main/examples/recipe.sh). 
-
-```
-. examples/recipe.sh $path_to_librispeech_data $ckpt_dir $pckg_dir
-``` 
-Perform steps 0, 1, and 2a below, and read the accompanying [README.md](https://github.com/ankitapasad/layerwise-analysis/blob/main/examples/README.md) before running the script. 
- 
-
-## 0. Pre-trained checkpoints and related setup
-Install the relevant model packages to `$pckg_dir` and download the pre-trained models in `$ckpt_dir`. The default inference in most model packages does not directly return layerwise outputs. This can that can be easily fixed with minor edits to their model files. The edited files are added to the `modellib_addons/` directory.
-
-**Replace the original files in the model packages with these edited versions before proceeding.**
+# Setup and Installation
 
 ## 1. Clone the repo and install requirements
 ```
@@ -53,7 +46,25 @@ git submodule init
 ```
 Note that since this repo is intended to be used for one or more of the models listed above, **please make sure to install these libraries in the same environment that has all the necessary installations and dependencies for the corresponding model(s)**.
 
-## 2. Data preparation
+## 2. Pre-trained checkpoints and related setup
+Install the relevant model packages to `$pckg_dir` and download the pre-trained models in `$ckpt_dir`. The default inference in most model packages does not directly return layerwise outputs. This can that can be easily fixed with minor edits to their model files. The edited files are added to the `modellib_addons/` directory.
+
+**Replace the original files in the model packages with these edited versions before proceeding.**
+
+# Usage
+
+Follow the next steps in order to generate property content trends for pretrained models from raw wavforms and alignments. Each step is accompanied by a short explanation.
+
+## 0. Quick intro with an example script
+
+You can find an abridged and collated version of these steps at [examples/recipe.sh](https://github.com/ankitapasad/layerwise-analysis/blob/main/examples/recipe.sh). 
+
+```
+. examples/recipe.sh $path_to_librispeech_data $ckpt_dir $pckg_dir
+``` 
+Perform step 3a below, and read the accompanying [README.md](https://github.com/ankitapasad/layerwise-analysis/blob/main/examples/README.md) before running the script. 
+
+## 1. Data preparation
 ### a. Download dataset 
 Currently, all the experiments use [Librispeech](https://www.openslr.org/12), so before proceeding further make sure you have the dataset downloaded. Download and extract all the files into the `$path_to_librispeech_data` directory, such that this directory has a folder for each dataset split.
 
@@ -83,7 +94,7 @@ For phone and word segments, the sampled set can be split further into subsets i
 
 Currently, each subset is under 10000 seconds. This threshold can be changed by passing the `dur_threshold` argument to the [`create_data_samples.py token-level` line](https://github.com/ankitapasad/layerwise-analysis/blob/main/scripts/create_librispeech_data_samples.sh#L45). 
 
-## 3. Feature extraction
+## 2. Feature extraction
 
 Example: Extract representations from the pre-trained wav2vec2.0 model for dev-clean split
 ```
@@ -110,7 +121,7 @@ Similarly for extracting representations from transformer layers, **run the abov
 
 The extracted features will be saved to the `$save_dir_pth/$model_name/librispeech_$dataset_split_sample1` directory
 
-## 4. Extraction of context-independent word embeddings
+## 3. Extraction of context-independent word embeddings
 **Note: This part is only necessary for wordsim experiments.**
 
 - Generate samples of words from the train set. Note that there is a `num_instances` variable inside the script, that is the value for number of instances' representations averaged for each word embedding. 
@@ -129,7 +140,8 @@ This will sample the word instances and divide all words into subsets, such that
 . scripts/extract_static_word_embed.sh combine $model_name $ckpt_dir $subfname $save_dir_pth
 ```
 
-## 5. Evaluate layer-wise property trends
+## 4. Evaluate layer-wise property trends
+- The results will be saved at `logs/librispeech_${model_name}/`.
 - Download and store GloVe and AGWE embeddings maps as dictionary files.
 ```
 . scripts/save_embeddings.sh $save_dir_pth $alignment_data_dir agwe
@@ -177,7 +189,8 @@ span=phone # or word
 . scripts/get_wordsim_scores.sh $model_name $subfname $save_dir_pth
 ```
 
-The results from all the above measures will be saved at `logs/librispeech_${model_name}/`
+### 4. Spoken STS evaluation
+[Coming soon]
 
 ## Acknowledgements
 1. Thanks to Ju-Chieh Chou ([@jjery2243542](https://github.com/jjery2243542)) for help with testing the codebase.
