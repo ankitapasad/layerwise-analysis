@@ -196,7 +196,7 @@ span=phone # or word
 ### Segmentation for LibriSpeech dataset
 Run the script below to perform word segmentation on the LibriSpeech dataset:
 ```
-python3 scripts/word_segmentation_librispeech.py $save_dir_pth/$model_name/librispeech_$dataset_split_sample1/contextualized/frame_level/ data_samples/librispeech/frame_level/500_ids_sample1_dev-clean.tsv $path_to_librispeech_data $librispeech_alignment_data_dir
+python3 codes/segmentation/word_segmentation_librispeech.py $save_dir_pth/$model_name/librispeech_$dataset_split_sample1/contextualized/frame_level/ data_samples/librispeech/frame_level/500_ids_sample1_dev-clean.tsv $path_to_librispeech_data $librispeech_alignment_data_dir
 ```
 It automatically conducts grid search to find the best combination of hyper-parameters based on the F-scores computed on detected word boundaries.
 
@@ -216,7 +216,7 @@ prominence=$optimal_prominence
 dist=$optimal_dist
 window_size=$optimal_window_size
 
-python3 scripts/word_segmentation_buckeye.py representations/$model/buckeye_$data_split_sample1/contextualized/frame_level/ data_samples/buckeye/segmentation/buckeye_$data_split.tsv $layer $prominence $dist $window_size $result_dir
+python3 codes/segmentation/word_segmentation_buckeye.py representations/$model/buckeye_$data_split_sample1/contextualized/frame_level/ data_samples/buckeye/segmentation/buckeye_$data_split.tsv $layer $prominence $dist $window_size $result_dir
 ```
 
 The results (including precision, recall, F-score, and R-value) can then be evaluated with the scripts provided in Herman's repository.
