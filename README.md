@@ -201,7 +201,10 @@ python3 scripts/word_segmentation_librispeech.py $save_dir_pth/$model_name/libri
 It automatically conducts grid search to find the best combination of hyper-parameters based on the F-scores computed on detected word boundaries.
 
 ### Segmentation for Buckeye dataset
-First, follow [Herman's repository](https://github.com/kamperh/vqwordseg?tab=readme-ov-file) to prepare the data and ground-truth word boundaries of the Buckeye dataset. Then, extract frame-level representations in a similar way as [step 2](https://github.com/ankitapasad/layerwise-analysis/tree/main?tab=readme-ov-file#2-feature-extraction).
+Follow [Herman's repository](https://github.com/kamperh/vqwordseg?tab=readme-ov-file) to prepare the data and ground-truth word boundaries for the Buckeye dataset. 
+Then, Create a tsv file in a similar format as `data_samples/librispeech/frame_level/500_ids_sample1_dev-clean.tsv`, which includes the file ID and path to the audio file of each sentence in the dataset.
+An example can be found in `data_samples/buckeye/segmentation/buckeye_val.tsv`.
+Extract frame-level representations in a similar way as [step 2](https://github.com/ankitapasad/layerwise-analysis/tree/main?tab=readme-ov-file#2-feature-extraction).
 ```
 dataset_split={val or test}
 . ./scripts/extract_rep.sh $model_name $ckpt_dir $data_sample contextualized frame 1 $dataset_split $save_dir_pth $pckg_dir buckeye
