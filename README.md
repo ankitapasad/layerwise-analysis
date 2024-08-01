@@ -12,14 +12,16 @@ This codebase puts together tools and experiments to analyze self-supervised spe
   - [0. Quick intro with an example script](#0-quick-intro-with-an-example-script)
   - [1. Data preparation](#1-data-preparation)
   - [2. Feature extraction](#2-feature-extraction)
-  - [3. Extraction of context-independent word embeddings](#3-extraction-of-context-independent-word-embeddings)
-  - [4. Evaluate layer-wise property trends](#4-evaluate-layer-wise-property-trends)
+  - [3. Evaluate layer-wise property trends](#3-evaluate-layer-wise-property-trends)
     - [Canonical Correlation Analysis](#1-canonical-correlation-analysis)
     - [Mutual information](#2-mutual-information)
-    - [Word similarity tasks](#3-wordsim-evaluation)
-    - [Acoustic word disctrimination](#4-acoustic-word-discrimination)
-    - [Unsupervised word segmentation](#5-unsupervised-word-segmentation)
-    - [Semantic sentence similarity](#6-spoken-sts-evaluation)
+  - [4. Evaluate training-free tasks](#4-evaluate-training-free-tasks)
+    - [Word similarity](#1-wordsim-evaluation)
+    - [Acoustic word disctrimination](#2-acoustic-word-discrimination)
+    - [Unsupervised word segmentation](#3-unsupervised-word-segmentation)
+      - [Librispeech](#3-unsupervised-word-segmentation)
+      - [Buckeye](#3-unsupervised-word-segmentation)
+    - [Semantic sentence similarity](#4-spoken-sts-evaluation)
   
 # Current support
 ## Pre-trained models
@@ -132,26 +134,7 @@ Similarly for extracting representations from transformer layers, **run the abov
 
 The extracted features will be saved to the `$save_dir_pth/$model_name/librispeech_$dataset_split_sample1` directory
 
-## 3. Extraction of context-independent word embeddings
-**Note: This part is only necessary for wordsim experiments.**
-
-- Generate samples of words from the train set. Note that there is a `num_instances` variable inside the script, that is the value for number of instances' representations averaged for each word embedding. 
-```
-. scripts/create_word_samples.sh $model_name $path_to_librispeech_data $alignment_data_dir $save_dir_pth $num_instances
-```
-This will sample the word instances and divide all words into subsets, such that each subset is smaller than 10000 seconds (for processing speech and parallelization).
-
-- Extract representation, you'll run the following for each `subset_id`. The argument `subfname` denotes the sample directory name that is set [here](https://github.com/ankitapasad/layerwise-analysis/blob/main/scripts/create_word_samples.sh#L22) and for which you wish to extract the embeddings.
-```
-. scripts/extract_static_word_embed.sh extract $model_name $ckpt_dir $subfname $save_dir_pth $subset_id
-```
-
-- Once all the subsets are processed, combine the representations to form an embedding map.
-```
-. scripts/extract_static_word_embed.sh combine $model_name $ckpt_dir $subfname $save_dir_pth
-```
-
-## 4. Evaluate layer-wise property trends
+## 3. Evaluate layer-wise property trends
 - The results will be saved at `logs/librispeech_${model_name}/`.
 - Download and store GloVe and AGWE embeddings maps as dictionary files.
 ```
@@ -195,23 +178,43 @@ span=phone # or word
 . scripts/get_mi_scores.sh $span $layer_num $iter_num $model_name $data_sample $save_dir_pth
 ```
 
-### 3. WordSim evaluation 
+## 4. Evaluate training-free tasks
+### 1. WordSim evaluation 
+#### Extraction of context-independent word embeddings
+
+- Generate samples of words from the train set. Note that there is a `num_instances` variable inside the script, that is the value for number of instances' representations averaged for each word embedding. 
+```
+. scripts/create_word_samples.sh $model_name $path_to_librispeech_data $alignment_data_dir $save_dir_pth $num_instances
+```
+This will sample the word instances and divide all words into subsets, such that each subset is smaller than 10000 seconds (for processing speech and parallelization).
+
+- Extract representation, you'll run the following for each `subset_id`. The argument `subfname` denotes the sample directory name that is set [here](https://github.com/ankitapasad/layerwise-analysis/blob/main/scripts/create_word_samples.sh#L22) and for which you wish to extract the embeddings.
+```
+. scripts/extract_static_word_embed.sh extract $model_name $ckpt_dir $subfname $save_dir_pth $subset_id
+```
+
+- Once all the subsets are processed, combine the representations to form an embedding map.
+```
+. scripts/extract_static_word_embed.sh combine $model_name $ckpt_dir $subfname $save_dir_pth
+```
+
+#### Evaluate WordSim
 ```
 . scripts/get_wordsim_scores.sh $model_name $subfname $save_dir_pth
 ```
 
-### 4. Acoustic word discrimination
+### 2. Acoustic word discrimination
 [Coming soon]
 
-### 5. Unsupervised word segmentation
-### Segmentation for LibriSpeech dataset
+### 3. Unsupervised word segmentation
+#### Segmentation for LibriSpeech dataset
 Run the script below to perform word segmentation on the LibriSpeech dataset:
 ```
 python3 codes/tools/word_segmentation_librispeech.py $save_dir_pth/$model_name/librispeech_$dataset_split_sample1/contextualized/frame_level/ data_samples/librispeech/frame_level/500_ids_sample1_dev-clean.tsv $path_to_librispeech_data $librispeech_alignment_data_dir
 ```
 It automatically conducts grid search to find the best combination of hyper-parameters based on the F-scores computed on detected word boundaries.
 
-### Segmentation for Buckeye dataset
+#### Segmentation for Buckeye dataset
 Follow [Herman's repository](https://github.com/kamperh/vqwordseg?tab=readme-ov-file) to prepare the data and ground-truth word boundaries for the Buckeye dataset. 
 Then, Create a tsv file in a similar format as `data_samples/librispeech/frame_level/500_ids_sample1_dev-clean.tsv`, which includes the file ID and path to the audio file of each sentence in the dataset.
 An example can be found in `example_files/data_samples/buckeye/segmentation/buckeye_val.tsv`.
@@ -232,7 +235,7 @@ python3 codes/segmentation/word_segmentation_buckeye.py representations/$model/b
 
 The results (including precision, recall, F-score, and R-value) can then be evaluated with the scripts provided in Herman's repository.
 
-### 6. Spoken STS evaluation
+### 4. Spoken STS evaluation
 [Coming soon]
 
 
