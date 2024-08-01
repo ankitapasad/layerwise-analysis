@@ -25,9 +25,24 @@ if [ $steps -le 2 ]; then
     span=frame
     dataset_split=dev-clean
     subset_id=0 # this is not used for frame-level representations
-    . scripts/create_librispeech_data_samples.sh $data_sample $path_to_librispeech_data $alignment_data_dir $dataset_split $span
+    . scripts/create_librispeech_data_samples.sh \
+    $data_sample \
+    $path_to_librispeech_data \
+    $alignment_data_dir \
+    $dataset_split \
+    $span
     for rep_type in ${rep_type_arr[*]}; do
-        . scripts/extract_rep.sh $model_name $ckpt_dir $data_sample $rep_type $span $subset_id $dataset_split $save_dir_pth $pckg_dir
+        . scripts/extract_rep.sh \
+        $model_name \
+        $ckpt_dir \
+        $data_sample \
+        $rep_type \
+        $span \
+        $subset_id \
+        $dataset_split \
+        $save_dir_pth \
+        $pckg_dir \
+        librispeech
     done
 
     # Extracting phone-level representations
@@ -36,12 +51,27 @@ if [ $steps -le 2 ]; then
     dataset_split_arr=("dev-clean"  "train-clean")
     for dataset_split in ${dataset_split_arr[*]}; do
         echo $dataset_split
-        . scripts/create_librispeech_data_samples.sh $data_sample $path_to_librispeech_data $alignment_data_dir $dataset_split $span
+        . scripts/create_librispeech_data_samples.sh \
+        $data_sample \
+        $path_to_librispeech_data \
+        $alignment_data_dir \
+        $dataset_split \
+        $span
         num_samples=`ls data_samples/librispeech/${span}_level/${dataset_split}_segments_sample${data_sample}_*.pkl | wc -l`
         num_samples=`expr $num_samples - 1`
         for subset_id in $(seq 0 $num_samples); do
             echo $subset_id
-            . scripts/extract_rep.sh $model_name $ckpt_dir $data_sample $rep_type $span $subset_id $dataset_split $save_dir_pth $pckg_dir
+            . scripts/extract_rep.sh \
+            $model_name \
+            $ckpt_dir \
+            $data_sample \
+            $rep_type \
+            $span \
+            $subset_id \
+            $dataset_split \
+            $save_dir_pth \
+            $pckg_dir \
+            librispeech
         done
     done
 fi

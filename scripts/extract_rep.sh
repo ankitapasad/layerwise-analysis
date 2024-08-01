@@ -7,7 +7,7 @@ subset_id=$6
 dataset_split=$7
 save_dir_pth=$8
 pckg_dir=$9
-dataset=${10}
+dataset=$10
 
 model_type=pretrained
 
@@ -33,7 +33,7 @@ offset=False
 if [ "$span" = "frame" ]; then
 	if [ "$dataset" = "librispeech" ]; then
 		utt_id_fn="data_samples/${dataset}/frame_level/500_ids_sample${data_sample}_${dataset_split}.tsv"
-	else
+	elif [ "$dataset" = "buckeye" ]; then
 		utt_id_fn="data_samples/${dataset}/segmentation/${dataset}_${dataset_split}.tsv"
 	fi
 	mean_pooling=False

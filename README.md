@@ -9,6 +9,17 @@ This codebase puts together tools and experiments to analyze self-supervised spe
 - [Current support](#current-support)
 - [Setup and Installation](#setup-and-installation)
 - [Usage](#usage)
+  - [0. Quick intro with an example script](#0-quick-intro-with-an-example-script)
+  - [1. Data preparation](#1-data-preparation)
+  - [2. Feature extraction](#2-feature-extraction)
+  - [3. Extraction of context-independent word embeddings](#3-extraction-of-context-independent-word-embeddings)
+  - [4. Evaluate layer-wise property trends](#4-evaluate-layer-wise-property-trends)
+    - [Canonical Correlation Analysis](#1-canonical-correlation-analysis)
+    - [Mutual information](#2-mutual-information)
+    - [Word similarity tasks](#3-wordsim-evaluation)
+    - [Acoustic word disctrimination](#4-acoustic-word-discrimination)
+    - [Unsupervised word segmentation](#5-unsupervised-word-segmentation)
+    - [Semantic sentence similarity](#6-spoken-sts-evaluation)
   
 # Current support
 ## Pre-trained models
@@ -189,21 +200,21 @@ span=phone # or word
 . scripts/get_wordsim_scores.sh $model_name $subfname $save_dir_pth
 ```
 
-### 4. Spoken STS evaluation
+### 4. Acoustic word discrimination
 [Coming soon]
 
-## 5. Evaluate word segmentation
+### 5. Unsupervised word segmentation
 ### Segmentation for LibriSpeech dataset
 Run the script below to perform word segmentation on the LibriSpeech dataset:
 ```
-python3 codes/segmentation/word_segmentation_librispeech.py $save_dir_pth/$model_name/librispeech_$dataset_split_sample1/contextualized/frame_level/ data_samples/librispeech/frame_level/500_ids_sample1_dev-clean.tsv $path_to_librispeech_data $librispeech_alignment_data_dir
+python3 codes/tools/word_segmentation_librispeech.py $save_dir_pth/$model_name/librispeech_$dataset_split_sample1/contextualized/frame_level/ data_samples/librispeech/frame_level/500_ids_sample1_dev-clean.tsv $path_to_librispeech_data $librispeech_alignment_data_dir
 ```
 It automatically conducts grid search to find the best combination of hyper-parameters based on the F-scores computed on detected word boundaries.
 
 ### Segmentation for Buckeye dataset
 Follow [Herman's repository](https://github.com/kamperh/vqwordseg?tab=readme-ov-file) to prepare the data and ground-truth word boundaries for the Buckeye dataset. 
 Then, Create a tsv file in a similar format as `data_samples/librispeech/frame_level/500_ids_sample1_dev-clean.tsv`, which includes the file ID and path to the audio file of each sentence in the dataset.
-An example can be found in `data_samples/buckeye/segmentation/buckeye_val.tsv`.
+An example can be found in `example_files/data_samples/buckeye/segmentation/buckeye_val.tsv`.
 Extract frame-level representations in a similar way as [step 2](https://github.com/ankitapasad/layerwise-analysis/tree/main?tab=readme-ov-file#2-feature-extraction).
 ```
 dataset_split={val or test}
@@ -220,6 +231,10 @@ python3 codes/segmentation/word_segmentation_buckeye.py representations/$model/b
 ```
 
 The results (including precision, recall, F-score, and R-value) can then be evaluated with the scripts provided in Herman's repository.
+
+### 6. Spoken STS evaluation
+[Coming soon]
+
 
 ## Acknowledgements
 1. Thanks to Ju-Chieh Chou ([@jjery2243542](https://github.com/jjery2243542)) for help with testing the codebase.
