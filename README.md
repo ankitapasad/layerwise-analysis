@@ -16,12 +16,14 @@ This codebase puts together tools and experiments to analyze self-supervised spe
     - [Canonical Correlation Analysis](#1-canonical-correlation-analysis)
     - [Mutual information](#2-mutual-information)
   - [4. Evaluate training-free tasks](#4-evaluate-training-free-tasks)
-    - [Word similarity](#1-wordsim-evaluation)
+    - [Textual word similarity](#1-textual-word-similarity)
+      - [Extraction of context-independent word embeddings](#extraction-of-context-independent-word-embeddings)
+      - [Evaluate WordSim](#1-wordsim-evaluation)
     - [Acoustic word disctrimination](#2-acoustic-word-discrimination)
     - [Unsupervised word segmentation](#3-unsupervised-word-segmentation)
-      - [Librispeech](#3-unsupervised-word-segmentation)
-      - [Buckeye](#3-unsupervised-word-segmentation)
-    - [Semantic sentence similarity](#4-spoken-sts-evaluation)
+      - [Librispeech](#segmentation-for-librispeech-dataset)
+      - [Buckeye](#segmentation-for-buckeye-dataset)
+    - [Spoken sentence similarity](#4-spoken-sentence-similarity)
   
 # Current support
 ## Pre-trained models
@@ -179,7 +181,7 @@ span=phone # or word
 ```
 
 ## 4. Evaluate training-free tasks
-### 1. WordSim evaluation 
+### 1. Textual word similarity 
 #### Extraction of context-independent word embeddings
 
 - Generate samples of words from the train set. Note that there is a `num_instances` variable inside the script, that is the value for number of instances' representations averaged for each word embedding. 
@@ -235,7 +237,7 @@ python3 codes/segmentation/word_segmentation_buckeye.py representations/$model/b
 
 The results (including precision, recall, F-score, and R-value) can then be evaluated with the scripts provided in Herman's repository.
 
-### 4. Spoken STS evaluation
+### 4. Spoken sentence similarity
 [Coming soon]
 
 
