@@ -451,7 +451,15 @@ class FeatExtractor:
         discrete_indices_dct[self.utt_id] = indices
 
     def save_rep_to_file(self, rep_dct, out_dir):
+        nframes = []
         for layer_num, rep_lst in rep_dct.items():
             rep_mat = np.concatenate(rep_lst, 0)
+            if layer_num == 1:
+                for rep in rep_lst:
+                    nframes.append(rep.shape[0])
             out_fn = os.path.join(out_dir, "layer_" + str(layer_num) + ".npy")
             np.save(out_fn, rep_mat)
+        out_fn = os.path.join(out_dir, "n_frames.txt")
+        with open(out_fn, 'w') as f:
+            for n in nframes:
+                f.write(f'{n}\n')

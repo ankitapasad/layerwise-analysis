@@ -122,7 +122,7 @@ Frame-level representations from the 7 convolutional layers
 ```
 rep_type=local
 span=frame
-. scripts/extract_rep.sh $model_name $ckpt_dir $data_sample $rep_type $span $subset_id $dataset_split $save_dir_pth $pckg_dir
+. scripts/extract_rep.sh $model_name $ckpt_dir $data_sample $rep_type $span $subset_id $dataset_split $save_dir_pth $pckg_dir librispeech
 ```
 
 Similarly for extracting representations from transformer layers, **run the above script with following changes to the arguments**: 
@@ -204,10 +204,37 @@ span=phone # or word
 [Coming soon]
 
 ### 5. Unsupervised word segmentation
-[Coming soon]
+### Segmentation for LibriSpeech dataset
+Run the script below to perform word segmentation on the LibriSpeech dataset:
+```
+python3 codes/tools/word_segmentation_librispeech.py $save_dir_pth/$model_name/librispeech_$dataset_split_sample1/contextualized/frame_level/ data_samples/librispeech/frame_level/500_ids_sample1_dev-clean.tsv $path_to_librispeech_data $librispeech_alignment_data_dir
+```
+It automatically conducts grid search to find the best combination of hyper-parameters based on the F-scores computed on detected word boundaries.
+
+### Segmentation for Buckeye dataset
+Follow [Herman's repository](https://github.com/kamperh/vqwordseg?tab=readme-ov-file) to prepare the data and ground-truth word boundaries for the Buckeye dataset. 
+Then, Create a tsv file in a similar format as `data_samples/librispeech/frame_level/500_ids_sample1_dev-clean.tsv`, which includes the file ID and path to the audio file of each sentence in the dataset.
+An example can be found in `example_files/data_samples/buckeye/segmentation/buckeye_val.tsv`.
+Extract frame-level representations in a similar way as [step 2](https://github.com/ankitapasad/layerwise-analysis/tree/main?tab=readme-ov-file#2-feature-extraction).
+```
+dataset_split={val or test}
+. ./scripts/extract_rep.sh $model_name $ckpt_dir $data_sample contextualized frame 1 $dataset_split $save_dir_pth $pckg_dir buckeye
+```
+
+Run the scipt below to predict word boundaries for the Buckeye dataset. The optimal hyper-parameters found in the previous step with the LibriSpeech dataset can be used.
+```
+prominence=$optimal_prominence
+dist=$optimal_dist
+window_size=$optimal_window_size
+
+python3 codes/segmentation/word_segmentation_buckeye.py representations/$model/buckeye_$data_split_sample1/contextualized/frame_level/ data_samples/buckeye/segmentation/buckeye_$data_split.tsv $layer $prominence $dist $window_size $result_dir
+```
+
+The results (including precision, recall, F-score, and R-value) can then be evaluated with the scripts provided in Herman's repository.
 
 ### 6. Spoken STS evaluation
 [Coming soon]
+
 
 ## Acknowledgements
 1. Thanks to Ju-Chieh Chou ([@jjery2243542](https://github.com/jjery2243542)) for help with testing the codebase.

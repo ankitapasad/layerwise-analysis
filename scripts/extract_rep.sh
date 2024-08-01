@@ -7,6 +7,7 @@ subset_id=$6
 dataset_split=$7
 save_dir_pth=$8
 pckg_dir=$9
+dataset=$10
 
 model_type=pretrained
 
@@ -27,16 +28,19 @@ if [[ $model_name == "fastvgs"* ]]; then
 else
 	ckpt_pth="$ckpt_dir/${model_name}.pt"
 fi
-dataset="librispeech"
 
 offset=False
 if [ "$span" = "frame" ]; then
-	utt_id_fn="data_samples/librispeech/frame_level/500_ids_sample${data_sample}_${dataset_split}.tsv"
+	if [ "$dataset" = "librispeech" ]; then
+		utt_id_fn="data_samples/${dataset}/frame_level/500_ids_sample${data_sample}_${dataset_split}.tsv"
+	elif [ "$dataset" = "buckeye" ]; then
+		utt_id_fn="data_samples/${dataset}/segmentation/${dataset}_${dataset_split}.tsv"
+	fi
 	mean_pooling=False
 	save_dir="${save_dir_pth}/${model_name}/${dataset}_${dataset_split}_sample${data_sample}/${rep_type}/${span}_level"
 else
 	mean_pooling=True
-	utt_id_fn="data_samples/librispeech/${span}_level/${dataset_split}_segments_sample${data_sample}_${subset_id}.json"
+	utt_id_fn="data_samples/${dataset}/${span}_level/${dataset_split}_segments_sample${data_sample}_${subset_id}.json"
 	if [ "$span" = "phone" ]; then
 		offset=True
 	fi
