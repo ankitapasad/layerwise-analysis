@@ -9,6 +9,17 @@ This codebase puts together tools and experiments to analyze self-supervised spe
 - [Current support](#current-support)
 - [Setup and Installation](#setup-and-installation)
 - [Usage](#usage)
+  - [0. Quick intro with an example script](#0-quick-intro-with-an-example-script)
+  - [1. Data preparation](#1-data-preparation)
+  - [2. Feature extraction](#2-feature-extraction)
+  - [3. Extraction of context-independent word embeddings](#3-extraction-of-context-independent-word-embeddings)
+  - [4. Evaluate layer-wise property trends](#4-evaluate-layer-wise-property-trends)
+    - [Canonical Correlation Analysis](#1-canonical-correlation-analysis)
+    - [Mutual information](#2-mutual-information)
+    - [Word similarity tasks](#3-wordsim-evaluation)
+    - [Acoustic word disctrimination](#4-acoustic-word-discrimination)
+    - [Unsupervised word segmentation](#5-unsupervised-word-segmentation)
+    - [Semantic sentence similarity](#6-spoken-sts-evaluation)
   
 # Current support
 ## Pre-trained models
@@ -189,7 +200,13 @@ span=phone # or word
 . scripts/get_wordsim_scores.sh $model_name $subfname $save_dir_pth
 ```
 
-### 4. Spoken STS evaluation
+### 4. Acoustic word discrimination
+[Coming soon]
+
+### 5. Unsupervised word segmentation
+[Coming soon]
+
+### 6. Spoken STS evaluation
 [Coming soon]
 
 ## Acknowledgements
