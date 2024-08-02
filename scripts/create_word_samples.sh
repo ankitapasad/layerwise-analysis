@@ -12,7 +12,7 @@ echo -e "\n\nSampling word segments"
 word_lst_pth="tasks/wordsim/words_of_interest_thresh0.lst" 
 if [ ! -f $word_lst_pth ]; then
     wordsim_dir=tasks/word-benchmarks
-    python codes/prepare/prepare_wordsim_data.py $wordsim_dir $alignment_dir tasks/wordsim 
+    python codes/prepare/prep_wordsim_data.py $wordsim_dir $alignment_dir tasks/wordsim 
 fi
 
 dur_thresh=10000 # threshold for parallelization

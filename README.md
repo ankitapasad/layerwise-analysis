@@ -13,6 +13,7 @@ This codebase puts together tools and experiments to analyze self-supervised spe
   - [1. Data preparation](#1-data-preparation)
   - [2. Feature extraction](#2-feature-extraction)
   - [3. Evaluate layer-wise property trends](#3-evaluate-layer-wise-property-trends)
+    - [Preliminaries](#0-preliminaries)
     - [Canonical Correlation Analysis](#1-canonical-correlation-analysis)
     - [Mutual information](#2-mutual-information)
   - [4. Evaluate training-free tasks](#4-evaluate-training-free-tasks)
@@ -137,12 +138,19 @@ Similarly for extracting representations from transformer layers, **run the abov
 The extracted features will be saved to the `$save_dir_pth/$model_name/librispeech_$dataset_split_sample1` directory
 
 ## 3. Evaluate layer-wise property trends
+### 0. Preliminaries
 - The results will be saved at `logs/librispeech_${model_name}/`.
+
 - Download and store GloVe and AGWE embeddings maps as dictionary files.
 ```
 . scripts/save_embeddings.sh $save_dir_pth $alignment_data_dir agwe
 . scripts/save_embeddings.sh $save_dir_pth $alignment_data_dir glove
 . scripts/save_embeddings.sh $save_dir_pth $alignment_data_dir one-hot
+```
+
+- Save formatted semantic and syntactic attributes.
+```
+bash scripts/prep_linguistic_attributes.sh
 ```
 
 ### 1. Canonical correlation analysis
@@ -259,4 +267,10 @@ Shane Settle, Kartik Audhkhasi, Karen Livescu, and Michael Picheny, “Acoustica
 ```
 Maithra Raghu, Justin Gilmer, Jason Yosinski, and Jascha Sohl-Dickstein, "SVCCA: Singular Vector Canonical Correlation Analysis for Deep Learning Dynamics and Interpretability", NeurIPS 2017
 Ari S. Morcos, Maithra Raghu, and Samy Bengio, "Insights on Representational Similarity in Deep Neural Networks with Canonical Correlation", NeurIPS 2018
+```
+
+5. Thanks to Yulia Tsvetkov ([@ytsvetko](https://github.com/ytsvetko)) for making the [semantic and syntactic attributes](https://github.com/ytsvetko/qvec/tree/master/oracles) publicly available. 
+```
+Yulia Tsvetkov, Manaal Faruqui, and Chris Dyer, "Correlation-based intrinsic evaluation of word vector representations", 1st Workshop on Evaluating Vector-Space Representations for NLP, 2016
+Yulia Tsvetkov, Manaal Faruqui, Wang Ling, Guillaume Lample, and Chris Dyer, "Evaluation of word vector representations by subspace alignment", EMNLP, 2016.
 ```
