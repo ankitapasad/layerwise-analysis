@@ -43,7 +43,7 @@ class tokenLevelSamples:
 
     def sample_tokens(self, token_lst, min_cnt, max_cnt, alignment_dct):
         """
-        Sample alignments such that each token has a "good" representation
+        Sample alignments such that each token has a "good" representation in the sample set
         """
         sampled_alignments = {}
         tot_dur = 0
@@ -178,9 +178,11 @@ class AllWrdSegments:
             return keys[0]
 
     def sample_word_segments(self):
-        alignment_dct = load_dct(
-            os.path.join(self.data_dir, f"alignment_word_train.json")
-        )
+        align_fn = os.path.join(self.data_dir, f"alignment_word_train.json")
+        if not os.path.exists(align_fn):
+            message = "Make sure you have run steps 1 to 3 of scripts/prepare_alignment_files.sh."
+            raise FileNotFoundError(f"No such file or directory: {align_fn}\n{message}")
+        alignment_dct = load_dct(align_fn)
         curr_split_idx = 0
         split_to_segments = {0: []}
         split_to_dur = {0: 0}
@@ -203,7 +205,7 @@ class AllWrdSegments:
             split_to_labels[split_idx].extend([wrd] * len(wrd_segments))
         for split_idx, labels_lst in split_to_labels.items():
             segment_lst = [
-                ",".join(list(item)) for item in split_to_segments[split_idx]
+                ",".join(list(item))+","+labels_lst[idx] for idx, item in enumerate(split_to_segments[split_idx])
             ]
             write_to_file(
                 "\n".join(labels_lst),
@@ -213,6 +215,7 @@ class AllWrdSegments:
                 "\n".join(segment_lst),
                 os.path.join(self.save_dir, f"word_segments_{split_idx}.lst"),
             )
+        print(f'\t{len(split_to_labels)} splits generated at {self.save_dir} with a labels_*.lst and word_segments_*.lst file for each split.')
 
 
 def sample_segments(

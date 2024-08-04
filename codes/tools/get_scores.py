@@ -7,7 +7,9 @@ from glob import glob
 import numpy as np
 from operator import itemgetter
 import os
+import random
 import time
+from tqdm import tqdm
 
 import tools
 
@@ -34,6 +36,7 @@ class getCCA:
         mean_score=False,
         eval_single_layer=False,
         layer_num=-1,
+        instance_cap=None, # cap on number of instances per word
     ):
         """
         exp_name: cca-mel | cca-intra | cca-inter | cca-glove | cca-agwe
@@ -60,6 +63,7 @@ class getCCA:
         self.span = span
         self.exp_name = exp_name
         self.mean_score = mean_score
+        self.instance_cap = instance_cap
 
     def get_score_flag(self, layer_id):
         get_score = False
@@ -200,41 +204,75 @@ class getCCA:
         all_labels.extend(label_lst)
 
     def filter_label_lst(self, all_labels, embed_dct):
+        label_idx_dct = {}
         num_labels = len(all_labels)
         valid_indices = list(np.arange(num_labels))
-        valid_label_lst = []
+        # valid_label_lst = []
         for idx, label in enumerate(all_labels):
             if label not in embed_dct:
                 valid_indices.remove(idx)
+        for idx in valid_indices:
+            label = all_labels[idx]
+            _ = label_idx_dct.setdefault(label, [])
+            label_idx_dct[label].append(idx)
         print(
             f"{num_labels-len(valid_indices)} of {num_labels} {self.span} segments dropped"
         )
-        return valid_indices
+        return valid_indices, label_idx_dct
+    
+    def update_idx_lst(self, valid_indices, label_idx_dct):
+        """
+        Update the indices to have less than instance_cap instances
+        """
+        print("Generating new list of valid indices")
+        new_valid_indices = []
+        for label in tqdm(list(label_idx_dct.keys())):
+            idx_lst = label_idx_dct[label]
+            if len(idx_lst) > self.instance_cap:
+                label_idx_dct[label] = random.sample(idx_lst, self.instance_cap)
+            new_valid_indices.extend(label_idx_dct[label])
+        assert not len(new_valid_indices) > len(valid_indices)
+        return new_valid_indices
 
     def cca_embed(self):
-        rep_dir = os.path.join(self.rep_dir, "contextualized", f"{self.span}_level")
-        embed_dct = load_dct(self.embed_fn)
-        num_splits = self.get_num_splits()
-        all_labels = []
-        for layer_id in range(self.num_transformer_layers + 1):
-            if self.get_score_flag(layer_id):
-                start_time = time.time()
-                all_rep = []
-                for split_num in range(num_splits):
-                    rep_fn = os.path.join(rep_dir, str(split_num), f"layer_{layer_id}.npy")
-                    rep_mat = np.load(rep_fn)
-                    all_rep.extend(rep_mat)
-                    if layer_id == 0 or self.eval_single_layer:
-                        self.update_label_lst(split_num, all_labels, rep_dir)
-
-                all_rep = np.array(all_rep)  # N x d
-                if layer_id == 0 or self.eval_single_layer:
-                    valid_indices = self.filter_label_lst(all_labels, embed_dct)
-                    all_embed = np.array(
+        check_cond = 'semantic' in self.exp_name or 'syntactic' in self.exp_name
+        if check_cond:
+            rep_dir = self.rep_dir
+            all_labels = read_lst(os.path.join(rep_dir, "labels.lst"))
+            valid_indices, label_idx_dct = self.filter_label_lst(all_labels, embed_dct)
+            if self.instance_cap is not None:
+                valid_indices = self.update_idx_lst(valid_indices, label_idx_dct)
+                valid_label_lst = [all_labels[idx1] for idx1 in valid_indices]
+                all_embed = np.array(
                         [embed_dct[all_labels[idx1]] for idx1 in valid_indices]
                     )
-                    valid_label_lst = [all_labels[idx1] for idx1 in valid_indices]
-                all_rep = all_rep[np.array(valid_indices)]
+        else:
+            rep_dir = os.path.join(self.rep_dir, "contextualized", f"{self.span}_level")
+            all_labels = []
+        embed_dct = load_dct(self.embed_fn)
+        num_splits = self.get_num_splits()
+        for layer_id in range(self.num_transformer_layers + 1):
+            if self.get_score_flag(layer_id):
+                if check_cond:
+                    all_rep = np.load(os.path.join(rep_dir, f"layer_{self.layer_num}.npy"))
+                    all_rep = all_rep[np.array(valid_indices)]
+                else:
+                    all_rep = []
+                    for split_num in range(num_splits):
+                        rep_fn = os.path.join(rep_dir, str(split_num), f"layer_{layer_id}.npy")
+                        rep_mat = np.load(rep_fn)
+                        all_rep.extend(rep_mat)
+                        if layer_id == 0 or self.eval_single_layer:
+                            self.update_label_lst(split_num, all_labels, rep_dir)
+
+                    all_rep = np.array(all_rep)  # N x d
+                    if layer_id == 0 or self.eval_single_layer:
+                        valid_indices, _ = self.filter_label_lst(all_labels, embed_dct)
+                        all_embed = np.array(
+                            [embed_dct[all_labels[idx1]] for idx1 in valid_indices]
+                        )
+                        valid_label_lst = [all_labels[idx1] for idx1 in valid_indices]
+                    all_rep = all_rep[np.array(valid_indices)]
                 sim_score = self.get_cca_score(
                     all_rep.T,
                     all_embed.T,
@@ -253,6 +291,12 @@ class getCCA:
         self.cca_embed()
 
     def cca_agwe(self):
+        self.cca_embed()
+    
+    def cca_semantic(self):
+        self.cca_embed()
+    
+    def cca_syntactic(self):
         self.cca_embed()
 
 

@@ -38,6 +38,10 @@ if [ "$span" = "frame" ]; then
 	fi
 	mean_pooling=False
 	save_dir="${save_dir_pth}/${model_name}/${dataset}_${dataset_split}_sample${data_sample}/${rep_type}/${span}_level"
+elif [ "$span" = "all_words"]; then
+	mean_pooling=True
+	utt_id_fn="data_samples/${dataset}/${span}_level/all_words_200instances/word_segments_${subset_id}.lst"
+	save_dir="${save_dir_pth}/${model_name}/${dataset}_all_words_200instances/${subset_id}"
 else
 	mean_pooling=True
 	utt_id_fn="data_samples/${dataset}/${span}_level/${dataset_split}_segments_sample${data_sample}_${subset_id}.json"

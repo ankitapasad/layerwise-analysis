@@ -20,11 +20,11 @@ if [ "$dataset" = "librispeech" ]; then
         # rm -r $alignment_data_dir/$data_split
     done
 
-    # echo "Step 3: Combining all train-clean-* splits into train-clean and all train-* splits into train"
-    # for data_split in train-clean train
-    # do
-    #     echo $data_split
-    #     python codes/prepare/read_librispeech_alignments.py combine $alignment_data_dir $data_split phone
-    #     python codes/prepare/read_librispeech_alignments.py combine $alignment_data_dir $data_split word
-    # done
+    echo "Step 3: Combining all train-clean-* splits into train-clean and all train-* splits into train"
+    for data_split in train-clean train
+    do
+        echo $data_split
+        python codes/prepare/read_librispeech_alignments.py combine $alignment_data_dir $data_split phone
+        python codes/prepare/read_librispeech_alignments.py combine $alignment_data_dir $data_split word
+    done
 fi

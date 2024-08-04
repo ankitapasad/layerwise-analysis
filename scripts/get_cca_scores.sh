@@ -10,7 +10,11 @@ dataset_split=dev-clean
 base_layer=0
 ft_data=960h
 
-sub_dir_name="${dataset}_${dataset_split}_sample${data_sample}"
+if [ "$exp_name" == "semantic" ] || [ "$exp_name" == "syntactic" ]; then
+    sub_dir_name="librispeech_all_words_200instances"
+else
+    sub_dir_name="${dataset}_${dataset_split}_sample${data_sample}"
+fi
 rep_dir="$save_dir_pth/${model_name}/${sub_dir_name}"
 fbank_dir="$save_dir_pth/fbanks/${sub_dir_name}"
 save_dir="logs/${dataset}_${model_name}"

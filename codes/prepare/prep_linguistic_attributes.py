@@ -46,10 +46,27 @@ class PrepData():
             wrd_embed_dct[word] = arr
         return wrd_embed_dct
 
-def main(fname, property_name, save_dir):
+def save_features(fname, property_name, save_dir):
     data_obj = PrepData(fname)
     embed_fn = f'{property_name}_properties.pkl'
     save_dct(os.path.join(save_dir, embed_fn), data_obj.wrd_embed_dct)
 
+def save_word_lst(embedding_dir, alignment_data_dir):
+    sem_words = list(load_dct(os.path.join(embedding_dir, 'semantic_properties.pkl')).keys())
+    syn_words = list(load_dct(os.path.join(embedding_dir, 'syntactic_properties.pkl')).keys())
+    all_words = list(set(sem_words + syn_words))
+    ls_words = read_lst(os.path.join(alignment_data_dir, "word.lst"))
+    common_words = list(set(all_words) - ((set(all_words) - set(ls_words))))
+    
+    save_dir = "data_samples/librispeech/word_level"
+    os.makedirs(save_dir, exist_ok=True)
+    save_fn = os.path.join(save_dir, "all_words.lst")
+    
+    print(f'\tList of {len(common_words)} words saved at {save_fn}')
+    write_to_file("\n".join(common_words), save_fn)
+
 if __name__ == "__main__":
-    fire.Fire(main)
+    fire.Fire({
+        'features': save_features,
+        'data': save_word_lst
+    })
