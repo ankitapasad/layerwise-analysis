@@ -18,7 +18,7 @@ This codebase puts together tools and experiments to analyze self-supervised spe
     - [c. Prepare sampled data for analysis](#c-prepare-sampled-data-for-analysis)
     - [d. Prepare linguistic features and corresponding samples](#d-prepare-linguistic-features-and-corresponding-samples)
     - [e. Prepare other embedding maps](#e-prepare-other-embedding-maps)
-    - [f. Prepare spoken STS data](#-f-prepare-spoken-sts)
+    - [f. Prepare spoken STS data](#f-prepare-spoken-sts)
   - [2. Feature extraction](#2-feature-extraction)
   - [3. Evaluate layer-wise property trends](#3-evaluate-layer-wise-property-trends)
     - [Canonical Correlation Analysis](#1-canonical-correlation-analysis)
