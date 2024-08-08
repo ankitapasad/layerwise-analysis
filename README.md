@@ -7,6 +7,8 @@ This codebase puts together tools and experiments to analyze self-supervised spe
 
 # Table of Contents
 - [Current support](#current-support)
+  - [Pre-trained models](#pre-trained-models)
+  - [Analysis experiments](#analysis-experiments)
 - [Setup and Installation](#setup-and-installation)
 - [Usage](#usage)
   - [0. Quick intro with an example script](#0-quick-intro-with-an-example-script)
@@ -14,8 +16,9 @@ This codebase puts together tools and experiments to analyze self-supervised spe
     - [a. Download LibriSpeech](#a-download-librispeech)
     - [b. Prepare LibriSpeech alignments](#b-prepare-librispeech-alignments)
     - [c. Prepare sampled data for analysis](#c-prepare-sampled-data-for-analysis)
-    - [d. Prepare linguistic features and corresponding samples](#d-prepare-inguistic-features-and-corresponding-samples)
-    - [e. Prepare other embedding maps](#e.prepare-other-embedding-maps)
+    - [d. Prepare linguistic features and corresponding samples](#d-prepare-linguistic-features-and-corresponding-samples)
+    - [e. Prepare other embedding maps](#e-prepare-other-embedding-maps)
+    - [f. Prepare spoken STS data](#-f-prepare-spoken-sts)
   - [2. Feature extraction](#2-feature-extraction)
   - [3. Evaluate layer-wise property trends](#3-evaluate-layer-wise-property-trends)
     - [Canonical Correlation Analysis](#1-canonical-correlation-analysis)
@@ -92,7 +95,7 @@ Currently, all the experiments use [Librispeech](https://www.openslr.org/12), so
 Follow the next two steps to prepare data files.
 
 ```
-. scripts/prepare_alignment_files.sh librispeech $path_to_librispeech_data $alignment_data_dir
+bash scripts/prepare_alignment_files.sh librispeech $path_to_librispeech_data $alignment_data_dir
 ```
 This will download and reformat the phone and word alignment files for Librispeech and save the alignments as dictionary files to `$alignment_data_dir`. These `.json` files map each phone/word type to a list of tuples `(utt_id, path_to_wav, start_time, end_time)`. This might take 30 minutes. _Note_: Uncomment step #3 commands if you intend to apply MI tools, this will add a few more minutes of processing time.  
 
@@ -101,7 +104,7 @@ This will download and reformat the phone and word alignment files for Librispee
 data_sample=1
 dataset_split=dev-clean
 span=frame
-. scripts/create_librispeech_data_samples.sh $data_sample $path_to_librispeech_data $alignment_data_dir $dataset_split $span
+bash scripts/create_librispeech_data_samples.sh $data_sample $path_to_librispeech_data $alignment_data_dir $dataset_split $span
 ```
 This will randomly sample audio utterances and phone and word segment instances from Librispeech. The list of sampled utterance ids will be saved to the `data_samples/librispeech` directory.
 
@@ -116,7 +119,7 @@ For phone and word segments, the sampled set can be split further into subsets i
 Currently, each subset is under 10000 seconds. This threshold can be changed by passing the `dur_threshold` argument to the [`create_data_samples.py token-level` line](https://github.com/ankitapasad/layerwise-analysis/blob/main/scripts/create_librispeech_data_samples.sh#L45). 
 
 ### d. Prepare linguistic features and corresponding samples
-We generate the word samples for linguistic features separately because thes eexperiments use a higher coverage of vocabulary.
+We generate the word samples for linguistic features separately because these experiments use a higher coverage of vocabulary.
 
 Save formatted semantic and syntactic attributes and create the word samples for analysis.
 ```
@@ -124,12 +127,20 @@ bash scripts/prep_linguistic_attributes_and_word_samples.sh $save_dir_pth $align
 ```
 
 ### e. Prepare other embedding maps
-Download and store GloVe and AGWE embeddings maps as dictionary files.
+Download and store GloVe and AGWE embedding maps as dictionary files.
 ```
-. scripts/save_embeddings.sh $save_dir_pth $alignment_data_dir agwe
-. scripts/save_embeddings.sh $save_dir_pth $alignment_data_dir glove
-. scripts/save_embeddings.sh $save_dir_pth $alignment_data_dir one-hot
+bash scripts/save_embeddings.sh $save_dir_pth $alignment_data_dir agwe
+bash scripts/save_embeddings.sh $save_dir_pth $alignment_data_dir glove
+bash scripts/save_embeddings.sh $save_dir_pth $alignment_data_dir one-hot
 ```
+
+### f. Prepare spoken STS
+Install [datasets package](https://huggingface.co/docs/datasets/en/installation) in your environment and download and prepare spoken STS data in `$path_to_sts_data`. 
+
+```
+bash scripts/prep_spoken_sts.sh $path_to_sts_data
+```
+
 
 ## 2. Feature extraction
 
@@ -148,7 +159,7 @@ Frame-level representations from the 7 convolutional layers
 ```
 rep_type=local
 span=frame
-. scripts/extract_rep.sh $model_name $ckpt_dir $data_sample $rep_type $span $subset_id $dataset_split $save_dir_pth $pckg_dir librispeech
+bash scripts/extract_rep.sh $model_name $ckpt_dir $data_sample $rep_type $span $subset_id $dataset_split $save_dir_pth $pckg_dir librispeech
 ```
 
 Similarly for extracting representations from transformer layers, **run the above script with following changes to the arguments**: 
@@ -174,7 +185,7 @@ Example: Canonical correlation analysis between the extracted representations an
 ```
 exp_name=cca_mel
 span=frame
-. scripts/get_cca_scores.sh $model_name $data_sample $exp_name $span $save_dir_pth
+bash scripts/get_cca_scores.sh $model_name $data_sample $exp_name $span $save_dir_pth
 ```
 
 In order to evaluate a single layer at a time, pass `$layer_num` to the same script
@@ -182,7 +193,7 @@ In order to evaluate a single layer at a time, pass `$layer_num` to the same scr
 exp_name=cca_mel
 span=frame
 layer_num=T4 # process transformer layer 4
-. scripts/get_cca_scores.sh $model_name $data_sample $exp_name $span $save_dir_pth $layer_num
+bash scripts/get_cca_scores.sh $model_name $data_sample $exp_name $span $save_dir_pth $layer_num
 ```
 
 The following CCA experiments are possible:
@@ -203,7 +214,7 @@ Example: Mutual information between $span labels and the extracted phone segment
 iter_num=0
 layer_num=1
 span=phone # or word
-. scripts/get_mi_scores.sh $span $layer_num $iter_num $model_name $data_sample $save_dir_pth
+bash scripts/get_mi_scores.sh $span $layer_num $iter_num $model_name $data_sample $save_dir_pth
 ```
 
 ## 4. Evaluate training-free tasks
@@ -212,23 +223,23 @@ span=phone # or word
 
 - Generate samples of words from the train set. Note that there is a `num_instances` variable inside the script, that is the value for number of instances' representations averaged for each word embedding. 
 ```
-. scripts/create_wsim_word_samples.sh $model_name $path_to_librispeech_data $alignment_data_dir $save_dir_pth $num_instances
+bash scripts/create_wsim_word_samples.sh $model_name $path_to_librispeech_data $alignment_data_dir $save_dir_pth $num_instances
 ```
 This will sample the word instances and divide all words into subsets, such that each subset is smaller than 10000 seconds (for processing speech and parallelization).
 
 - Extract representation, you'll run the following for each `subset_id`. The argument `subfname` denotes the sample directory name that is set [here](https://github.com/ankitapasad/layerwise-analysis/blob/main/scripts/create_wsim_word_samples.sh#L22) and for which you wish to extract the embeddings.
 ```
-. scripts/extract_static_word_embed.sh extract $model_name $ckpt_dir $subfname $save_dir_pth $subset_id
+bash scripts/extract_static_word_embed.sh extract $model_name $ckpt_dir $subfname $save_dir_pth $subset_id
 ```
 
 - Once all the subsets are processed, combine the representations to form an embedding map.
 ```
-. scripts/extract_static_word_embed.sh combine $model_name $ckpt_dir $subfname $save_dir_pth
+bash scripts/extract_static_word_embed.sh combine $model_name $ckpt_dir $subfname $save_dir_pth
 ```
 
 #### Evaluate WordSim
 ```
-. scripts/get_wordsim_scores.sh $model_name $subfname $save_dir_pth
+bash scripts/get_wordsim_scores.sh $model_name $subfname $save_dir_pth
 ```
 
 ### 2. Acoustic word discrimination
@@ -252,7 +263,7 @@ dataset_split={val or test}
 . ./scripts/extract_rep.sh $model_name $ckpt_dir $data_sample contextualized frame 1 $dataset_split $save_dir_pth $pckg_dir buckeye
 ```
 
-Run the scipt below to predict word boundaries for the Buckeye dataset. The optimal hyper-parameters found in the previous step with the LibriSpeech dataset can be used.
+Run the script below to predict word boundaries for the Buckeye dataset. The optimal hyper-parameters found in the previous step with the LibriSpeech dataset can be used.
 ```
 prominence=$optimal_prominence
 dist=$optimal_dist
@@ -264,7 +275,17 @@ python3 codes/segmentation/word_segmentation_buckeye.py representations/$model/b
 The results (including precision, recall, F-score, and R-value) can then be evaluated with the scripts provided in Herman's repository.
 
 ### 4. Spoken sentence similarity
-[Coming soon]
+For extracting utterance level representations for spoken STS
+```
+for subset_id in 0 1; do
+  bash scripts/extract_rep_spoken_sts.sh $model_name $ckpt_dir $subset_id $save_dir_pth $pckg_dir
+done
+```
+
+Evaluate spoken STS, mean of all pairs of speaker combinations
+```
+bash scripts/eval_spoken_sts.sh $model_name $save_dir_pth $path_to_sts_data
+```
 
 
 ## Acknowledgements

@@ -77,7 +77,7 @@ def save_rep(
 
     start = time.time()
     for item in tqdm(utt_id_lst):
-        if span == "frame":
+        if span == "frame" or span == "utt":
             time_stamp_lst = None
             utt_id, wav_fn = item.split("\t")
         elif ".lst" in utt_id_fn: # all-words with samples saved as lst

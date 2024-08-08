@@ -8,6 +8,8 @@ import numpy as np
 from operator import itemgetter
 import os
 import random
+from scipy.spatial.distance import cosine
+from scipy.stats import spearmanr, pearsonr
 import time
 from tqdm import tqdm
 
@@ -494,6 +496,37 @@ def evaluate_wordsim(model_name, wordsim_task_fn, embedding_dir, save_fn):
         res_dct["macro average"][layer_num] /= len(wordsim_tasks)
     save_dct(save_fn, res_dct)
 
+def evaluate_spokensts(
+        model_name,
+        rep_dir,
+        gt_score_fn,
+        pair_idx_fn,
+        res_dir,
+        sample_data_fn,
+):
+    rep_dir = os.path.join(rep_dir, model_name, 'utt_level')
+    num_splits = len(glob(os.path.join(sample_data_fn, "split*.tsv")))
+    gt_dct = load_dct(gt_score_fn)
+    pair_idx_dct = load_dct(pair_idx_fn)
+    layer_lst = [item.split('.')[0].split('_')[1] for item in os.listdir(os.path.join(rep_dir, "0"))]
+    res_dct = {}
+    for layer_num in layer_lst:
+        rep_mat = []
+        for split_idx in range(num_splits):
+            rep_mat.extend(np.load(os.path.join(rep_dir, str(split_idx), f"layer_{layer_num}.npy")))
+        rep_mat = np.array(rep_mat)
+        cosine_similarities, human_judgements = [], []
+        for pair_name in gt_dct:
+            all_cos_sim = []
+            for idx1, idx2 in pair_idx_dct[pair_name]:
+                all_cos_sim.append(1 - cosine(rep_mat[idx1], rep_mat[idx2]))
+            assert len(all_cos_sim) == 16
+            cosine_similarities.extend(all_cos_sim)
+            human_judgements.extend([gt_dct[pair_name]]*len(all_cos_sim))
+    
+        srho_score, _ = spearmanr(np.array(cosine_similarities), np.array(human_judgements))
+        res_dct[layer_num] = srho_score
+    save_dct(os.path.join(res_dir, f'{model_name}_spoken_sts.json'), res_dct)
 
 if __name__ == "__main__":
     fire.Fire(
@@ -501,5 +534,6 @@ if __name__ == "__main__":
             "mi": evaluate_mi,
             "cca": evaluate_cca,
             "wordsim": evaluate_wordsim,
+            "spoken_sts": evaluate_spokensts,
         }
     )
