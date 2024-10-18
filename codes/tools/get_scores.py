@@ -503,6 +503,7 @@ def evaluate_spokensts(
         pair_idx_fn,
         res_dir,
         sample_data_fn,
+        mean=True, # replicates eval setup of Merkx et al. 
 ):
     rep_dir = os.path.join(rep_dir, model_name, 'utt_level')
     num_splits = len(glob(os.path.join(sample_data_fn, "split*.tsv")))
@@ -521,8 +522,12 @@ def evaluate_spokensts(
             for idx1, idx2 in pair_idx_dct[pair_name]:
                 all_cos_sim.append(1 - cosine(rep_mat[idx1], rep_mat[idx2]))
             assert len(all_cos_sim) == 16
-            cosine_similarities.extend(all_cos_sim)
-            human_judgements.extend([gt_dct[pair_name]]*len(all_cos_sim))
+            if mean:
+                cosine_similarities.append(np.mean(all_cos_sim))
+                human_judgements.append(gt_dct[pair_name])
+            else:
+                cosine_similarities.extend(all_cos_sim)
+                human_judgements.extend([gt_dct[pair_name]]*len(all_cos_sim))
     
         srho_score, _ = spearmanr(np.array(cosine_similarities), np.array(human_judgements))
         res_dct[layer_num] = srho_score
